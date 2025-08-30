@@ -5,7 +5,13 @@ import { Calendar, Clock, Award, Users, Play, BookOpen } from 'lucide-react';
 import EventsList from '../EventsList';
 import CourseDetails from './CourseDetails';
 
-const Courses: React.FC = () => {
+interface CoursesProps {
+  onNavigateToFFT?: () => void;
+  onNavigateToODA?: () => void;
+  onNavigateToAnatomy?: () => void;
+}
+
+const Courses: React.FC<CoursesProps> = ({ onNavigateToFFT, onNavigateToODA, onNavigateToAnatomy }) => {
   const { isDark } = useTheme();
   const { user } = useAuth();
   const [selectedCourse, setSelectedCourse] = useState<number | null>(null);
@@ -18,6 +24,24 @@ const Courses: React.FC = () => {
 
   const handleBackToCourses = () => {
     setSelectedCourse(null);
+  };
+
+  const handleFFTCourseClick = () => {
+    if (onNavigateToFFT) {
+      onNavigateToFFT();
+    }
+  };
+
+  const handleODACourseClick = () => {
+    if (onNavigateToODA) {
+      onNavigateToODA();
+    }
+  };
+
+  const handleAnatomyCourseClick = () => {
+    if (onNavigateToAnatomy) {
+      onNavigateToAnatomy();
+    }
   };
 
   const courses = [
@@ -60,7 +84,7 @@ const Courses: React.FC = () => {
       duration: '24 часа',
       type: 'Интенсив',
       price: 'Сертификат',
-      startDate: '15 октября 2024',
+      startDate: '15 октября 2025',
       description: 'Специализированный курс по диагностике опорно-двигательного аппарата.',
       features: [
         'Диагностические методы',
@@ -189,7 +213,12 @@ const Courses: React.FC = () => {
                 </div>
                 
                 <button 
-                  onClick={() => handleCourseSelect(course.id)}
+                  onClick={() => {
+                    if (course.id === 2) return handleFFTCourseClick();
+                    if (course.id === 3) return handleODACourseClick();
+                    if (course.id === 4) return handleAnatomyCourseClick();
+                    return handleCourseSelect(course.id);
+                  }}
                   className={`w-full mt-4 px-4 py-2 rounded-lg font-medium transition-all duration-300 ${
                     isDark
                       ? 'bg-[#94c356] hover:bg-[#7ba045] text-white'

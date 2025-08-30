@@ -6,18 +6,22 @@ import Home from './components/screens/Home';
 import Courses from './components/screens/Courses';
 import ScheduleCalendar from './components/screens/ScheduleCalendar';
 import Profile from './components/screens/Profile';
+import NotificationsScreen from './components/screens/NotificationsScreen';
+import FFTCourseDetails from './components/screens/FFTCourseDetails';
+import ODACourseDetails from './components/screens/ODACourseDetails';
 import EmailConfirmation from './components/screens/EmailConfirmation';
 import PasswordReset from './components/screens/PasswordReset';
 import ThemeToggle from './components/ThemeToggle';
 import { LOGO_PATH } from './utils/paths';
+import AnatomyCourseDetails from './components/screens/AnatomyCourseDetails';
 
 function App() {
   const { isDark } = useTheme();
   const { user } = useAuth();
-  const [activeScreen, setActiveScreen] = useState<'home' | 'courses' | 'schedule' | 'profile' | 'email-confirmation' | 'password-reset'>(() => {
+  const [activeScreen, setActiveScreen] = useState<'home' | 'courses' | 'schedule' | 'profile' | 'email-confirmation' | 'password-reset' | 'notifications' | 'fft-course' | 'oda-course' | 'anatomy-course'>(() => {
     // Восстанавливаем активный экран из localStorage
     const savedScreen = localStorage.getItem('irfit_active_screen');
-    return (savedScreen as 'home' | 'courses' | 'schedule' | 'profile' | 'email-confirmation' | 'password-reset') || 'home';
+    return (savedScreen as 'home' | 'courses' | 'schedule' | 'profile' | 'email-confirmation' | 'password-reset' | 'notifications' | 'fft-course' | 'oda-course' | 'anatomy-course') || 'home';
   });
 
 
@@ -97,7 +101,11 @@ function App() {
         mainScreen = <Home />;
         break;
       case 'courses':
-        mainScreen = <Courses />;
+        mainScreen = <Courses 
+          onNavigateToFFT={() => setActiveScreen('fft-course')}
+          onNavigateToODA={() => setActiveScreen('oda-course')}
+          onNavigateToAnatomy={() => setActiveScreen('anatomy-course')}
+        />;
         break;
       case 'schedule':
         mainScreen = <ScheduleCalendar />;
@@ -110,6 +118,28 @@ function App() {
           }}
           onForceGoToLogin={forceGoToLogin}
           onGoToPasswordReset={goToPasswordReset}
+        />;
+        break;
+      case 'notifications':
+        mainScreen = <NotificationsScreen 
+          onBack={() => setActiveScreen('profile')}
+          isDark={isDark}
+        />;
+        break;
+      case 'fft-course':
+        mainScreen = <FFTCourseDetails 
+          onBack={() => setActiveScreen('courses')}
+          isDark={isDark}
+        />;
+        break;
+      case 'oda-course':
+        mainScreen = <ODACourseDetails
+          onBack={() => setActiveScreen('courses')}
+        />;
+        break;
+      case 'anatomy-course':
+        mainScreen = <AnatomyCourseDetails
+          onBack={() => setActiveScreen('courses')}
         />;
         break;
       default:
@@ -205,7 +235,27 @@ function App() {
                 IRFIT
               </h1>
             </div>
-            <ThemeToggle />
+            <div className="flex items-center space-x-2">
+              {/* Кнопка уведомлений */}
+              {user && (
+                <button
+                  onClick={() => setActiveScreen('notifications')}
+                  className={`p-2 rounded-lg transition-colors duration-200 w-10 h-10 flex items-center justify-center ${
+                    isDark 
+                      ? 'text-white hover:bg-gray-800 hover:text-[#94c356]' 
+                      : 'text-gray-600 hover:bg-gray-100 hover:text-[#94c356]'
+                  }`}
+                  title="Уведомления"
+                >
+                  <div className="relative">
+                    <span className="text-xs">🔔</span>
+                    {/* Индикатор непрочитанных уведомлений */}
+                    <div className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full animate-pulse"></div>
+                  </div>
+                </button>
+              )}
+              <ThemeToggle />
+            </div>
           </div>
         </div>
       </header>

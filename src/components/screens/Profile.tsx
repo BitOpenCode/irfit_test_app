@@ -9,6 +9,7 @@ import TeacherRequestForm from './TeacherRequestForm';
 import EventsManagement from './EventsManagement';
 import NewsManagement from './NewsManagement';
 import UserMessages from './UserMessages';
+import CourseApplications from './CourseApplications';
 
 interface ProfileProps {
   onShowEmailConfirmation: (data: {
@@ -40,6 +41,7 @@ const Profile: React.FC<ProfileProps> = ({ onShowEmailConfirmation, onForceGoToL
   const [showEventsManagement, setShowEventsManagement] = useState(false);
   const [showNewsManagement, setShowNewsManagement] = useState(false);
   const [showUserMessages, setShowUserMessages] = useState(false);
+  const [showCourseApplications, setShowCourseApplications] = useState(false);
 
   // Автозаполнение email в форме входа после подтверждения
   useEffect(() => {
@@ -552,6 +554,16 @@ const Profile: React.FC<ProfileProps> = ({ onShowEmailConfirmation, onForceGoToL
     );
   }
 
+  // Если открыт экран заявок на курс, показываем его
+  if (showCourseApplications) {
+    return (
+      <CourseApplications
+        onBack={() => setShowCourseApplications(false)}
+        isDark={isDark}
+      />
+    );
+  }
+
   return (
     <div className="max-w-md mx-auto px-4 py-6 space-y-6 md:max-w-4xl md:px-8 transition-colors duration-300">
       {/* Profile Header */}
@@ -832,6 +844,35 @@ const Profile: React.FC<ProfileProps> = ({ onShowEmailConfirmation, onForceGoToL
                   </h4>
                   <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
                     Отправка личных сообщений пользователям
+                  </p>
+                </div>
+                <div className={`w-6 h-6 rounded-full ${isDark ? 'bg-gray-600' : 'bg-gray-300'} flex items-center justify-center group-hover:bg-[#94c356] transition-colors`}>
+                  <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
+                </div>
+              </div>
+            </button>
+
+            {/* Заявки на курс */}
+            <button
+              onClick={() => setShowCourseApplications(true)}
+              className={`w-full p-4 rounded-xl border-2 border-dashed transition-all duration-300 ${
+                isDark 
+                  ? 'border-gray-600 hover:border-[#94c356] hover:bg-gray-700/50' 
+                  : 'border-gray-300 hover:border-[#94c356] hover:bg-gray-50'
+              } group`}
+            >
+              <div className="flex items-center space-x-3">
+                <div className={`w-10 h-10 rounded-full ${isDark ? 'bg-gray-700' : 'bg-gray-200'} flex items-center justify-center group-hover:bg-[#94c356] transition-colors`}>
+                  <Users className={`w-5 h-5 ${isDark ? 'text-gray-400' : 'text-gray-500'} group-hover:text-white transition-colors`} />
+                </div>
+                <div className="flex-1 text-left">
+                  <h4 className={`font-semibold ${isDark ? 'text-white' : 'text-gray-800'}`}>
+                    Заявки на курс
+                  </h4>
+                  <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+                    Подтверждение пользователей, назначение групп, отправка пушей
                   </p>
                 </div>
                 <div className={`w-6 h-6 rounded-full ${isDark ? 'bg-gray-600' : 'bg-gray-300'} flex items-center justify-center group-hover:bg-[#94c356] transition-colors`}>

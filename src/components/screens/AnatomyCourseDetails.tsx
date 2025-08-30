@@ -18,7 +18,7 @@ const AnatomyCourseDetails: React.FC<AnatomyCourseDetailsProps> = ({ onBack }) =
     duration: '35 часов',
     format: 'Онлайн',
     document: 'Сертификат',
-    image: '/course-expert-fitness.jpg'
+    image: './course-expert-fitness.jpg'
   };
 
   return (

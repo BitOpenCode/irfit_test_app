@@ -26,7 +26,7 @@ const FFTCourseDetails: React.FC<FFTCourseDetailsProps> = ({ onBack }) => {
     duration: '24 часа',
     format: 'Онлайн',
     document: 'Сертификат',
-    image: '/course-expert-fitness.jpg'
+    image: './course-expert-fitness.jpg'
   };
 
   // Учебные модули

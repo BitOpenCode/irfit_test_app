@@ -409,7 +409,7 @@ const ScheduleEditor: React.FC<ScheduleEditorProps> = ({ onBack }) => {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
           <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
-            Название занятия *
+            Название *
           </label>
           <input
             type="text"
@@ -455,7 +455,7 @@ const ScheduleEditor: React.FC<ScheduleEditorProps> = ({ onBack }) => {
 
         <div>
           <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
-            Тип занятия *
+            Тип *
           </label>
           <select
             value={formData.class_type}
@@ -493,7 +493,7 @@ const ScheduleEditor: React.FC<ScheduleEditorProps> = ({ onBack }) => {
 
         <div>
           <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
-            Максимум участников
+            Макс. участников
           </label>
           <input
             type="number"
@@ -523,7 +523,7 @@ const ScheduleEditor: React.FC<ScheduleEditorProps> = ({ onBack }) => {
 
         <div>
           <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
-            Время начала *
+            Начало *
           </label>
           <input
             type="time"
@@ -537,7 +537,7 @@ const ScheduleEditor: React.FC<ScheduleEditorProps> = ({ onBack }) => {
 
         <div>
           <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
-            Время окончания *
+            Окончание *
           </label>
           <input
             type="time"
@@ -554,7 +554,7 @@ const ScheduleEditor: React.FC<ScheduleEditorProps> = ({ onBack }) => {
           <>
             <div>
               <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
-                Ссылка для просмотра онлайн
+                Онлайн ссылка
               </label>
               <input
                 type="url"
@@ -569,7 +569,7 @@ const ScheduleEditor: React.FC<ScheduleEditorProps> = ({ onBack }) => {
 
             <div>
               <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
-                Ссылка для просмотра записанной лекции
+                Ссылка на запись
               </label>
               <input
                 type="url"

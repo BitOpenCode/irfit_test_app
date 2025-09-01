@@ -111,9 +111,9 @@ const EventForm: React.FC<EventFormProps> = ({
         <form onSubmit={handleSubmit} className="p-4 sm:p-6 space-y-4 sm:space-y-6">
           {/* Название события */}
           <div>
-            <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-200' : 'text-gray-700'}`}>
-              Название события *
-            </label>
+                          <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-200' : 'text-gray-700'}`}>
+                Название *
+              </label>
             <input
               type="text"
               value={formData.title}
@@ -132,7 +132,7 @@ const EventForm: React.FC<EventFormProps> = ({
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-200' : 'text-gray-700'}`}>
-                Тип события *
+                Тип *
               </label>
               <select
                 value={formData.event_type}
@@ -150,7 +150,7 @@ const EventForm: React.FC<EventFormProps> = ({
 
             <div>
               <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-200' : 'text-gray-700'}`}>
-                Дата проведения *
+                Дата *
               </label>
               <input
                 type="date"
@@ -170,7 +170,7 @@ const EventForm: React.FC<EventFormProps> = ({
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-200' : 'text-gray-700'}`}>
-                Время начала *
+                Время *
               </label>
               <input
                 type="time"
@@ -203,7 +203,7 @@ const EventForm: React.FC<EventFormProps> = ({
           {/* Описание */}
           <div>
             <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-200' : 'text-gray-700'}`}>
-              Описание события *
+              Описание *
             </label>
             <textarea
               value={formData.description}
@@ -223,7 +223,7 @@ const EventForm: React.FC<EventFormProps> = ({
           <div className="space-y-4">
             <div>
               <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-200' : 'text-gray-700'}`}>
-                Ссылка на мероприятие
+                Ссылка
               </label>
               <input
                 type="url"

@@ -31,7 +31,7 @@ interface ScheduleItem {
 
 const ScheduleCalendar: React.FC = () => {
   const { isDark } = useTheme();
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   
   // Функция для безопасной установки выбранной даты
@@ -162,7 +162,12 @@ const ScheduleCalendar: React.FC = () => {
         });
 
         if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
+          // Проверяем на 403 ошибку (истекшая сессия)
+          if (response.status === 403) {
+            throw new Error('Время сессии истекло. Пожалуйста, войдите в систему заново.');
+          } else {
+            throw new Error(`HTTP error! status: ${response.status}`);
+          }
         }
 
         const data = await response.json();
@@ -192,11 +197,17 @@ const ScheduleCalendar: React.FC = () => {
       } catch (error) {
         console.error('Ошибка загрузки расписания:', error);
         
-        // Проверяем, является ли ошибка HTTP 401 (Unauthorized)
-        if (error instanceof Error && error.message.includes('401')) {
-          setError('Чтобы просматривать расписание зарегистрируйтесь или войдите в личный кабинет');
+        // Проверяем различные типы ошибок
+        if (error instanceof Error) {
+          if (error.message.includes('403')) {
+            setError('Время сессии истекло. Пожалуйста, войдите в систему заново.');
+          } else if (error.message.includes('401')) {
+            setError('Чтобы просматривать расписание зарегистрируйтесь или войдите в личный кабинет');
+          } else {
+            setError(`Ошибка загрузки расписания: ${error.message}`);
+          }
         } else {
-          setError(`Ошибка загрузки расписания: ${error instanceof Error ? error.message : 'Неизвестная ошибка'}`);
+          setError(`Ошибка загрузки расписания: Неизвестная ошибка`);
         }
       } finally {
         setIsLoading(false);
@@ -913,6 +924,14 @@ const ScheduleCalendar: React.FC = () => {
                 <div className={`rounded-xl p-4 ${isDark ? 'bg-red-900/20 border border-red-600/30' : 'bg-red-50 border border-red-200'} shadow-sm`}>
                   <div className="text-center">
                     <p className={`text-sm ${isDark ? 'text-red-400' : 'text-red-700'}`}>{error}</p>
+                    {error.includes('Время сессии истекло') && (
+                      <button
+                        onClick={logout}
+                        className={`mt-3 px-4 py-2 rounded-lg ${isDark ? 'bg-red-600 text-white hover:bg-red-700' : 'bg-red-500 text-white hover:bg-red-600'}`}
+                      >
+                        Войти заново
+                      </button>
+                    )}
                   </div>
                 </div>
               )}

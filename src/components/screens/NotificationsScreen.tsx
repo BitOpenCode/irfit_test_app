@@ -22,7 +22,7 @@ interface NotificationsScreenProps {
 }
 
 const NotificationsScreen: React.FC<NotificationsScreenProps> = ({ onBack, isDark }) => {
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -89,7 +89,13 @@ const NotificationsScreen: React.FC<NotificationsScreenProps> = ({ onBack, isDar
       } else {
         console.log('HTTP ошибка:', response.status, response.statusText);
         console.log('Response headers:', response.headers);
-        setError(`Ошибка соединения с сервером: ${response.status} ${response.statusText}`);
+        
+        // Проверяем на 403 ошибку (истекшая сессия)
+        if (response.status === 403) {
+          setError('Время сессии истекло. Пожалуйста, войдите в систему заново.');
+        } else {
+          setError(`Ошибка соединения с сервером: ${response.status} ${response.statusText}`);
+        }
       }
     } catch (err) {
       console.error('Ошибка загрузки уведомлений:', err);
@@ -228,12 +234,22 @@ const NotificationsScreen: React.FC<NotificationsScreenProps> = ({ onBack, isDar
             </svg>
             <p className="text-lg font-medium mb-2">Ошибка загрузки</p>
             <p className="text-sm opacity-75">{error}</p>
-            <button
-              onClick={fetchNotifications}
-              className={`mt-4 px-4 py-2 rounded-lg ${isDark ? 'bg-gray-700 text-white hover:bg-gray-600' : 'bg-gray-200 text-gray-800 hover:bg-gray-300'}`}
-            >
-              Попробовать снова
-            </button>
+            <div className="mt-4 space-y-2">
+              <button
+                onClick={fetchNotifications}
+                className={`px-4 py-2 rounded-lg ${isDark ? 'bg-gray-700 text-white hover:bg-gray-600' : 'bg-gray-200 text-gray-800 hover:bg-gray-300'}`}
+              >
+                Попробовать снова
+              </button>
+              {error.includes('Время сессии истекло') && (
+                <button
+                  onClick={logout}
+                  className={`ml-2 px-4 py-2 rounded-lg ${isDark ? 'bg-red-600 text-white hover:bg-red-700' : 'bg-red-500 text-white hover:bg-red-600'}`}
+                >
+                  Войти заново
+                </button>
+              )}
+            </div>
           </div>
         ) : notifications.length === 0 ? (
           <div className={`text-center py-8 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
@@ -332,11 +348,8 @@ const NotificationsScreen: React.FC<NotificationsScreenProps> = ({ onBack, isDar
                     </div>
                   )}
                   
-                  {/* Footer с информацией */}
-                  <div className="flex items-center justify-between text-xs opacity-75 mt-auto pt-3 border-t border-gray-200 dark:border-gray-600">
-                    <div className="flex items-center space-x-2">
-                      <span>{notification.created_by || 'Неизвестный автор'}</span>
-                    </div>
+                  {/* Footer с датой */}
+                  <div className="flex items-center justify-end text-xs opacity-75 mt-auto pt-3 border-t border-gray-200 dark:border-gray-600">
                     <div className="flex items-center space-x-2">
                       <Clock className="w-3 h-3" />
                       <span>{notification.created_at ? formatDate(notification.created_at) : 'Дата не указана'}</span>

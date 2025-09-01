@@ -166,11 +166,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const logout = () => {
     setUser(null);
+    setIsAuthenticated(false);
     // Очищаем все данные аутентификации
     localStorage.removeItem('irfit_token');
     localStorage.removeItem('irfit_is_authenticated');
     localStorage.removeItem('irfit_user_data');
     localStorage.removeItem('user');
+    // Перенаправляем на профиль для входа
+    window.location.href = '/#profile';
   };
 
   const register = async (email: string, password: string, name: string, role: UserRole): Promise<boolean> => {

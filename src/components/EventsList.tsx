@@ -11,7 +11,7 @@ interface EventsListProps {
 
 const EventsList: React.FC<EventsListProps> = ({ onEditEvent, onDeleteEvent }) => {
   const { isDark } = useTheme();
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   const [events, setEvents] = useState<EventItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -38,7 +38,12 @@ const EventsList: React.FC<EventsListProps> = ({ onEditEvent, onDeleteEvent }) =
         });
         
         if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
+          // Проверяем на 403 ошибку (истекшая сессия)
+          if (response.status === 403) {
+            throw new Error('Время сессии истекло. Пожалуйста, войдите в систему заново.');
+          } else {
+            throw new Error(`HTTP error! status: ${response.status}`);
+          }
         }
 
         const data = await response.json();
@@ -133,6 +138,14 @@ const EventsList: React.FC<EventsListProps> = ({ onEditEvent, onDeleteEvent }) =
       <div className={`rounded-xl p-4 ${isDark ? 'bg-red-900/20 border border-red-600/30' : 'bg-red-50 border border-red-200'} shadow-sm`}>
         <div className="text-center">
           <p className={`text-sm ${isDark ? 'text-red-400' : 'text-red-700'}`}>{error}</p>
+          {error.includes('Время сессии истекло') && (
+            <button
+              onClick={logout}
+              className={`mt-3 px-4 py-2 rounded-lg ${isDark ? 'bg-red-600 text-white hover:bg-red-700' : 'bg-red-500 text-white hover:bg-red-600'}`}
+            >
+              Войти заново
+            </button>
+          )}
         </div>
       </div>
     );

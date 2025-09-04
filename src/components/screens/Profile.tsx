@@ -31,7 +31,7 @@ const Profile: React.FC<ProfileProps> = ({ onShowEmailConfirmation, onForceGoToL
   const [registerData, setRegisterData] = useState({ 
     email: '', 
     password: '', 
-    name: '',
+    name: '', 
     tgid: ''
   });
   const [isRegistering, setIsRegistering] = useState(false);
@@ -225,7 +225,7 @@ const Profile: React.FC<ProfileProps> = ({ onShowEmailConfirmation, onForceGoToL
     setIsLoading(true);
     
     try {
-      const response = await fetch('https://n8n.bitcoinlimb.com/webhook-test/register-irfit', {
+      const response = await fetch('https://n8n.bitcoinlimb.com/webhook/register-irfit', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -272,7 +272,7 @@ const Profile: React.FC<ProfileProps> = ({ onShowEmailConfirmation, onForceGoToL
         source: 'irfit_app'
       };
       
-      const webhookResponse = await fetch('https://n8n.bitcoinlimb.com/webhook-test/register-irfit', {
+      const webhookResponse = await fetch('https://n8n.bitcoinlimb.com/webhook/register-irfit', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -660,14 +660,14 @@ const Profile: React.FC<ProfileProps> = ({ onShowEmailConfirmation, onForceGoToL
           <div className="grid grid-cols-2 gap-4">
             {achievements.map((achievement) => (
               <div key={achievement.id} className={`flex items-center space-x-3 p-3 rounded-lg transition-colors duration-300 ${
-                achievement.unlocked
+                  achievement.unlocked
                   ? isDark ? 'bg-[#94c356]/20 border border-[#94c356]/30' : 'bg-[#94c356]/10 border border-[#94c356]/30'
                   : isDark ? 'bg-gray-700' : 'bg-gray-100'
               }`}>
                 <span className="text-2xl">{achievement.icon}</span>
                 <div className="flex-1">
                   <div className={`font-medium text-sm ${isDark ? 'text-white' : 'text-gray-800'}`}>
-                    {achievement.title}
+                  {achievement.title}
                   </div>
                   <div className={`text-xs ${achievement.unlocked ? (isDark ? 'text-[#94c356]' : 'text-[#94c356]') : (isDark ? 'text-gray-500' : 'text-gray-500')}`}>
                     {achievement.description}
@@ -682,8 +682,8 @@ const Profile: React.FC<ProfileProps> = ({ onShowEmailConfirmation, onForceGoToL
       {/* Запрос роли учителя - только для учеников */}
       {user?.role === 'student' && (
         <div className={`rounded-2xl p-6 transition-colors duration-300 ${
-          isDark ? 'bg-gray-800' : 'bg-white'
-        }`}>
+                isDark ? 'bg-gray-800' : 'bg-white'
+              }`}>
           <h3 className={`text-lg font-bold mb-4 ${isDark ? 'text-white' : 'text-gray-800'}`}>Развитие</h3>
           <div className="space-y-3">
             <button 
@@ -698,14 +698,14 @@ const Profile: React.FC<ProfileProps> = ({ onShowEmailConfirmation, onForceGoToL
               </div>
               <ChevronRight className={`w-4 h-4 ${isDark ? 'text-gray-400' : 'text-gray-500'}`} />
             </button>
-          </div>
-        </div>
+              </div>
+              </div>
       )}
 
       {/* Settings */}
       <div className={`rounded-2xl p-6 transition-colors duration-300 ${
-        isDark ? 'bg-gray-800' : 'bg-white'
-      }`}>
+                isDark ? 'bg-gray-800' : 'bg-white'
+              }`}>
         <h3 className={`text-lg font-bold mb-4 ${isDark ? 'text-white' : 'text-gray-800'}`}>Настройки</h3>
         <div className="space-y-3">
           <button 
@@ -717,7 +717,7 @@ const Profile: React.FC<ProfileProps> = ({ onShowEmailConfirmation, onForceGoToL
             <div className="flex items-center space-x-3">
               <Settings className={`w-5 h-5 ${isDark ? 'text-gray-400' : 'text-gray-500'}`} />
               <span className={isDark ? 'text-gray-300' : 'text-gray-700'}>Настройки профиля</span>
-            </div>
+              </div>
             <ChevronRight className={`w-4 h-4 ${isDark ? 'text-gray-400' : 'text-gray-500'}`} />
           </button>
           
@@ -727,7 +727,7 @@ const Profile: React.FC<ProfileProps> = ({ onShowEmailConfirmation, onForceGoToL
             <div className="flex items-center space-x-3">
               <Users className={`w-5 h-5 ${isDark ? 'text-gray-400' : 'text-gray-500'}`} />
               <span className={`${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Пригласить друзей</span>
-            </div>
+              </div>
             <ChevronRight className={`w-4 h-4 ${isDark ? 'text-gray-400' : 'text-gray-500'}`} />
           </button>
         </div>
@@ -740,7 +740,7 @@ const Profile: React.FC<ProfileProps> = ({ onShowEmailConfirmation, onForceGoToL
         }`}>
           <h3 className={`text-lg font-bold mb-4 ${isDark ? 'text-white' : 'text-gray-800'}`}>
             Административные функции
-          </h3>
+            </h3>
           <div className="space-y-4">
             {/* Запросы на добавление в качестве Учителя */}
             <button
@@ -794,8 +794,8 @@ const Profile: React.FC<ProfileProps> = ({ onShowEmailConfirmation, onForceGoToL
                 </div>
                 <div className={`w-6 h-6 rounded-full ${isDark ? 'bg-gray-600' : 'bg-gray-300'} flex items-center justify-center group-hover:bg-[#94c356] transition-colors`}>
                   <span className="text-xs font-bold text-white">∞</span>
-                </div>
-              </div>
+            </div>
+          </div>
             </button>
 
             {/* Управление событиями */}
@@ -826,7 +826,7 @@ const Profile: React.FC<ProfileProps> = ({ onShowEmailConfirmation, onForceGoToL
                 </div>
               </div>
             </button>
-
+            
             {/* Публикация новостей */}
             <button
               onClick={() => setShowNewsManagement(true)}
@@ -855,7 +855,7 @@ const Profile: React.FC<ProfileProps> = ({ onShowEmailConfirmation, onForceGoToL
                 </div>
               </div>
             </button>
-
+            
             {/* Управление пользователями */}
             <button
               onClick={() => setShowUserManagement(true)}
@@ -871,7 +871,7 @@ const Profile: React.FC<ProfileProps> = ({ onShowEmailConfirmation, onForceGoToL
                 </div>
                 <div className="flex-1 text-left">
                   <h4 className={`font-semibold ${isDark ? 'text-white' : 'text-gray-800'}`}>
-                    Управление пользователями
+                      Управление пользователями
                   </h4>
                   <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
                     Просмотр, поиск и управление всеми пользователями
@@ -911,9 +911,9 @@ const Profile: React.FC<ProfileProps> = ({ onShowEmailConfirmation, onForceGoToL
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                   </svg>
                 </div>
-              </div>
-            </button>
-
+                  </div>
+                </button>
+                
             {/* Заявки на курс */}
             <button
               onClick={() => setShowCourseApplications(true)}
@@ -940,8 +940,8 @@ const Profile: React.FC<ProfileProps> = ({ onShowEmailConfirmation, onForceGoToL
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                   </svg>
                 </div>
-              </div>
-            </button>
+                  </div>
+                </button>
           </div>
         </div>
       )}
@@ -950,4 +950,4 @@ const Profile: React.FC<ProfileProps> = ({ onShowEmailConfirmation, onForceGoToL
   );
 };
 
-export default Profile; 
+export default Profile;

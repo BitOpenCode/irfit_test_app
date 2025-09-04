@@ -31,7 +31,8 @@ const Profile: React.FC<ProfileProps> = ({ onShowEmailConfirmation, onForceGoToL
   const [registerData, setRegisterData] = useState({ 
     email: '', 
     password: '', 
-    name: ''
+    name: '',
+    tgid: ''
   });
   const [isRegistering, setIsRegistering] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -54,6 +55,21 @@ const Profile: React.FC<ProfileProps> = ({ onShowEmailConfirmation, onForceGoToL
       localStorage.removeItem('irfit_confirmed_email');
     }
   }, [isRegistering]);
+
+  // Автоматическое получение tgid при загрузке
+  useEffect(() => {
+    const getTgId = () => {
+      // Проверяем, запущено ли приложение в Telegram WebApp
+      if (window.Telegram?.WebApp?.initDataUnsafe?.user?.id) {
+        const tgid = window.Telegram.WebApp.initDataUnsafe.user.id;
+        setRegisterData(prev => ({ ...prev, tgid: tgid.toString() }));
+        return tgid;
+      }
+      return null;
+    };
+
+    getTgId();
+  }, []);
 
 
   const achievements = [
@@ -216,6 +232,7 @@ const Profile: React.FC<ProfileProps> = ({ onShowEmailConfirmation, onForceGoToL
         },
         body: JSON.stringify({
           ...registerData,
+          tgid: registerData.tgid || null,
           resend: true,
           timestamp: new Date().toISOString(),
           action: 'resend_code',
@@ -249,6 +266,7 @@ const Profile: React.FC<ProfileProps> = ({ onShowEmailConfirmation, onForceGoToL
         name: registerData.name,
         password: registerData.password,
         role: 'student', // Всегда регистрируем как ученика
+        tgid: registerData.tgid || null, // Добавляем tgid
         timestamp: new Date().toISOString(),
         action: 'register_attempt',
         source: 'irfit_app'
@@ -431,6 +449,7 @@ const Profile: React.FC<ProfileProps> = ({ onShowEmailConfirmation, onForceGoToL
                   placeholder="Введите пароль"
                 />
               </div>
+
 
               {/* Роль автоматически устанавливается как "student" */}
 

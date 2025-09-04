@@ -53,15 +53,28 @@ const TeacherRequests: React.FC<TeacherRequestsProps> = ({ onBack, isDark }) => 
       }
 
       const data = await response.json();
+      console.log('Полученные данные заявок:', data); // Для отладки
+      
+      let requestsData = [];
+      
       if (data.success && Array.isArray(data.requests)) {
-        setRequests(data.requests);
+        requestsData = data.requests;
       } else if (Array.isArray(data)) {
-        setRequests(data);
+        requestsData = data;
       } else if (data.requests && Array.isArray(data.requests)) {
-        setRequests(data.requests);
-      } else {
-        setRequests([]);
+        requestsData = data.requests;
       }
+      
+      // Фильтруем пустые или неполные заявки
+      const validRequests = requestsData.filter(request => 
+        request && 
+        request.id && 
+        request.user_email && 
+        request.user_name &&
+        request.status
+      );
+      
+      setRequests(validRequests);
     } catch (error) {
       console.error('Ошибка загрузки заявок:', error);
       setError('Ошибка загрузки заявок');
@@ -411,9 +424,9 @@ const TeacherRequests: React.FC<TeacherRequestsProps> = ({ onBack, isDark }) => 
 
           {requests.length === 0 && (
             <div className={`text-center py-12 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
-              <div className="text-6xl mb-4">📭</div>
-              <p className="text-lg">Нет активных заявок</p>
-              <p className="text-sm">Все заявки на роль учителя рассмотрены</p>
+              <div className="text-6xl mb-4">👨‍🏫</div>
+              <p className="text-lg font-semibold mb-2">Заявки на роль учителя отсутствуют</p>
+              <p className="text-sm">В данный момент нет заявок от пользователей, желающих стать учителями</p>
             </div>
           )}
         </div>

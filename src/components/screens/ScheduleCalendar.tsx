@@ -175,25 +175,29 @@ const ScheduleCalendar: React.FC = () => {
         // Логируем данные для отладки
         console.log('Данные с сервера schedules-take:', data);
         
+        let schedulesData = [];
+        
         if (data.success && data.schedules) {
-          console.log('Используем data.schedules:', data.schedules);
-          setScheduleData(data.schedules);
+          schedulesData = data.schedules;
         } else if (data.schedules) {
-          // Если нет поля success, но есть schedules
-          console.log('Используем data.schedules (без success):', data.schedules);
-          setScheduleData(data.schedules);
+          schedulesData = data.schedules;
         } else if (data.data) {
-          // Возможно, данные в поле data
-          console.log('Используем data.data:', data.data);
-          setScheduleData(data.data);
+          schedulesData = data.data;
         } else if (Array.isArray(data)) {
-          // Возможно, данные приходят как массив напрямую
-          console.log('Используем data как массив:', data);
-          setScheduleData(data);
-        } else {
-          console.log('Данные не найдены, устанавливаем пустой массив');
-          setScheduleData([]);
+          schedulesData = data;
         }
+        
+        // Фильтруем пустые или неполные расписания
+        const validSchedules = schedulesData.filter(schedule => 
+          schedule && 
+          schedule.id && 
+          schedule.title && 
+          schedule.teacher &&
+          schedule.date
+        );
+        
+        console.log('Отфильтрованные расписания:', validSchedules);
+        setScheduleData(validSchedules);
       } catch (error) {
         console.error('Ошибка загрузки расписания:', error);
         
@@ -872,12 +876,17 @@ const ScheduleCalendar: React.FC = () => {
                 </div>
               ))
             ) : (
-              <div className={`text-center py-8 ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
+              <div className={`text-center py-12 ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
                 {scheduleData.length === 0 ? (
-                  <p>Занятия не найдены</p>
+                  <div>
+                    <div className="text-6xl mb-4">📅</div>
+                    <p className="text-lg font-semibold mb-2">Занятия не найдены</p>
+                    <p className="text-sm">В данный момент нет запланированных занятий</p>
+                  </div>
                 ) : (
                   <div>
-                    <p className="text-lg font-medium mb-2">По вашему запросу ничего не найдено</p>
+                    <div className="text-6xl mb-4">🔍</div>
+                    <p className="text-lg font-semibold mb-2">По вашему запросу ничего не найдено</p>
                     <p className="text-sm">Попробуйте изменить фильтры поиска</p>
                   </div>
                 )}

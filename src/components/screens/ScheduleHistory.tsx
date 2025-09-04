@@ -81,20 +81,27 @@ const ScheduleHistory: React.FC<ScheduleHistoryProps> = ({ onBack, isDark }) => 
       const data = await response.json();
       console.log('Полученные данные расписаний:', data);
 
-                      if (data.success && Array.isArray(data.schedules)) {
-                  setSchedules(data.schedules);
-                  setFilteredSchedules(data.schedules);
-                } else if (Array.isArray(data)) {
-                  setSchedules(data);
-                  setFilteredSchedules(data);
-                } else if (data.schedules && Array.isArray(data.schedules)) {
-                  setSchedules(data.schedules);
-                  setFilteredSchedules(data.schedules);
-                } else {
-                  console.error('Неверный формат данных:', data);
-                  setSchedules([]);
-                  setFilteredSchedules([]);
-                }
+      let schedulesData = [];
+      
+      if (data.success && Array.isArray(data.schedules)) {
+        schedulesData = data.schedules;
+      } else if (Array.isArray(data)) {
+        schedulesData = data;
+      } else if (data.schedules && Array.isArray(data.schedules)) {
+        schedulesData = data.schedules;
+      }
+      
+      // Фильтруем пустые или неполные расписания
+      const validSchedules = schedulesData.filter(schedule => 
+        schedule && 
+        schedule.id && 
+        schedule.title && 
+        schedule.teacher &&
+        schedule.date
+      );
+      
+      setSchedules(validSchedules);
+      setFilteredSchedules(validSchedules);
     } catch (error) {
       console.error('Ошибка загрузки расписаний:', error);
       setSchedules([]);
@@ -536,9 +543,9 @@ const ScheduleHistory: React.FC<ScheduleHistoryProps> = ({ onBack, isDark }) => 
             </div>
           ) : filteredSchedules.length === 0 ? (
             <div className={`text-center py-12 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
-              <div className="text-6xl mb-4">📋</div>
-              <p className="text-lg">Расписания не найдены</p>
-              <p className="text-sm">Попробуйте изменить фильтры поиска</p>
+              <div className="text-6xl mb-4">📅</div>
+              <p className="text-lg font-semibold mb-2">Нет истории изменений расписаний</p>
+              <p className="text-sm">Расписания были удалены из календаря</p>
             </div>
           ) : null}
         </div>

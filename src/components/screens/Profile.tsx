@@ -190,7 +190,7 @@ const Profile: React.FC<ProfileProps> = ({ onShowEmailConfirmation, onForceGoToL
     setIsLoading(true);
     
     try {
-      const response = await fetch('https://n8n.bitcoinlimb.com/webhook/confirm-irfit', {
+      const response = await fetch('https://n8n.bitcoinlimb.com/webhook-test/confirm-irfit', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

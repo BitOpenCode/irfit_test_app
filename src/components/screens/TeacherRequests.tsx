@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ArrowLeft, UserPlus, Mail, Calendar, MessageSquare, CheckCircle, XCircle } from 'lucide-react';
+import { ArrowLeft, UserPlus, Mail, Calendar, MessageSquare, CheckCircle, XCircle, Trash2 } from 'lucide-react';
 
 interface TeacherRequest {
   id: number;
@@ -155,6 +155,51 @@ const TeacherRequests: React.FC<TeacherRequestsProps> = ({ onBack, isDark }) => 
     } catch (error) {
       console.error('Ошибка отклонения запроса:', error);
       setError('Ошибка отклонения заявки');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleDelete = async (requestId: number) => {
+    if (!confirm('Вы уверены, что хотите удалить эту заявку? Это действие нельзя отменить.')) {
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const token = localStorage.getItem('irfit_token');
+      if (!token) {
+        setError('Токен не найден');
+        return;
+      }
+
+      const response = await fetch('https://n8n.bitcoinlimb.com/webhook/teacher-request-delete', {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          request_id: requestId
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      if (data.success) {
+        // Удаляем заявку из локального состояния
+        setRequests(prev => prev.filter(req => req.id !== requestId));
+        // Перезагружаем данные
+        fetchTeacherRequests();
+      } else {
+        setError('Ошибка удаления заявки');
+      }
+    } catch (error) {
+      console.error('Ошибка удаления запроса:', error);
+      setError('Ошибка удаления заявки');
     } finally {
       setIsLoading(false);
     }
@@ -319,26 +364,39 @@ const TeacherRequests: React.FC<TeacherRequestsProps> = ({ onBack, isDark }) => 
                 <span>Заявка подана: {formatDate(request.created_at)}</span>
               </div>
 
-              {request.status === 'pending' && (
-                <div className="flex space-x-3">
-                  <button
-                    onClick={() => handleApprove(request.id)}
-                    disabled={isLoading}
-                    className="flex-1 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors disabled:opacity-50 flex items-center justify-center space-x-2"
-                  >
-                    <CheckCircle className="w-4 h-4" />
-                    <span>Одобрить</span>
-                  </button>
-                  <button
-                    onClick={() => handleReject(request.id)}
-                    disabled={isLoading}
-                    className="flex-1 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors disabled:opacity-50 flex items-center justify-center space-x-2"
-                  >
-                    <XCircle className="w-4 h-4" />
-                    <span>Отклонить</span>
-                  </button>
-                </div>
-              )}
+              {/* Кнопки действий */}
+              <div className="flex space-x-3">
+                {request.status === 'pending' && (
+                  <>
+                    <button
+                      onClick={() => handleApprove(request.id)}
+                      disabled={isLoading}
+                      className="flex-1 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors disabled:opacity-50 flex items-center justify-center space-x-2"
+                    >
+                      <CheckCircle className="w-4 h-4" />
+                      <span>Одобрить</span>
+                    </button>
+                    <button
+                      onClick={() => handleReject(request.id)}
+                      disabled={isLoading}
+                      className="flex-1 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors disabled:opacity-50 flex items-center justify-center space-x-2"
+                    >
+                      <XCircle className="w-4 h-4" />
+                      <span>Отклонить</span>
+                    </button>
+                  </>
+                )}
+                {/* Кнопка удаления - всегда видна */}
+                <button
+                  onClick={() => handleDelete(request.id)}
+                  disabled={isLoading}
+                  className="px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-colors disabled:opacity-50 flex items-center justify-center space-x-2"
+                  title="Удалить заявку"
+                >
+                  <Trash2 className="w-4 h-4" />
+                  <span>Удалить</span>
+                </button>
+              </div>
 
               {/* Информация об обработке */}
               {request.status !== 'pending' && request.processed_at && (

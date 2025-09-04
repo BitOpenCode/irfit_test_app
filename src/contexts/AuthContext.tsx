@@ -172,8 +172,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     localStorage.removeItem('irfit_is_authenticated');
     localStorage.removeItem('irfit_user_data');
     localStorage.removeItem('user');
-    // Перенаправляем на профиль для входа
-    window.location.href = '/#profile';
+    // Устанавливаем активный экран в профиль для входа
+    localStorage.setItem('irfit_active_screen', 'profile');
+    // Перезагружаем страницу для применения изменений
+    window.location.reload();
   };
 
   const register = async (email: string, password: string, name: string, role: UserRole): Promise<boolean> => {

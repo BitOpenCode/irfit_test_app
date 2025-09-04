@@ -229,11 +229,7 @@ const NotificationsScreen: React.FC<NotificationsScreenProps> = ({ onBack, isDar
       <div className="p-4">
         {error ? (
           <div className={`text-center py-8 ${isDark ? 'text-red-400' : 'text-red-600'}`}>
-            <svg className="w-12 h-12 mx-auto mb-4 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-5 5v-5zM15 17v-3a5 5 0 00-5-5H5a5 5 0 00-5 5v3h15z" />
-            </svg>
-            <p className="text-lg font-medium mb-2">Ошибка загрузки</p>
-            <p className="text-sm opacity-75">{error}</p>
+            <p className="text-lg font-medium mb-2">{error}</p>
             <div className="mt-4 space-y-2">
               <button
                 onClick={fetchNotifications}

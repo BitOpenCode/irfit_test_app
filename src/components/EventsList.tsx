@@ -78,7 +78,7 @@ const EventsList: React.FC<EventsListProps> = ({ onEditEvent, onDeleteEvent }) =
           } else if (error instanceof Error && error.message.includes('401')) {
             setError('Ошибка авторизации. Попробуйте войти заново');
           } else {
-            setError(`Ошибка загрузки событий: ${error instanceof Error ? error.message : 'Неизвестная ошибка'}`);
+            setError(error instanceof Error ? error.message : 'Неизвестная ошибка');
           }
         } finally {
           setIsLoading(false);

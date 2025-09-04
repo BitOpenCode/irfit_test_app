@@ -204,10 +204,10 @@ const ScheduleCalendar: React.FC = () => {
           } else if (error.message.includes('401')) {
             setError('Чтобы просматривать расписание зарегистрируйтесь или войдите в личный кабинет');
           } else {
-            setError(`Ошибка загрузки расписания: ${error.message}`);
+            setError(error.message);
           }
         } else {
-          setError(`Ошибка загрузки расписания: Неизвестная ошибка`);
+          setError('Неизвестная ошибка');
         }
       } finally {
         setIsLoading(false);

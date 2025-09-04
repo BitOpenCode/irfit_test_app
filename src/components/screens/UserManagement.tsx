@@ -372,12 +372,23 @@ const UserManagement: React.FC<UserManagementProps> = ({ onBack, isDark }) => {
             </div>
 
             {/* Статистика */}
-            <div className="flex items-center justify-between text-sm text-gray-500">
-              <span>Найдено: {filteredUsers.length} из {users.length}</span>
-              <div className="flex space-x-4">
-                <span>Админов: {users.filter(u => u.role === 'admin').length}</span>
-                <span>Учителей: {users.filter(u => u.role === 'teacher').length}</span>
-                <span>Учеников: {users.filter(u => u.role === 'student').length}</span>
+            <div className="space-y-2 text-sm text-gray-500">
+              <div className="text-center">
+                <span>Найдено: {filteredUsers.length} из {users.length}</span>
+              </div>
+              <div className="grid grid-cols-3 gap-2 text-center">
+                <div className={`p-2 rounded-lg ${isDark ? 'bg-gray-700' : 'bg-gray-100'}`}>
+                  <div className="font-semibold text-yellow-600">{users.filter(u => u.role === 'admin').length}</div>
+                  <div className="text-xs">Админов</div>
+                </div>
+                <div className={`p-2 rounded-lg ${isDark ? 'bg-gray-700' : 'bg-gray-100'}`}>
+                  <div className="font-semibold text-blue-600">{users.filter(u => u.role === 'teacher').length}</div>
+                  <div className="text-xs">Учителей</div>
+                </div>
+                <div className={`p-2 rounded-lg ${isDark ? 'bg-gray-700' : 'bg-gray-100'}`}>
+                  <div className="font-semibold text-green-600">{users.filter(u => u.role === 'student').length}</div>
+                  <div className="text-xs">Учеников</div>
+                </div>
               </div>
             </div>
           </div>
@@ -392,20 +403,20 @@ const UserManagement: React.FC<UserManagementProps> = ({ onBack, isDark }) => {
                 isDark ? 'border-gray-700' : 'border-gray-200'
               }`}
             >
-              <div className="flex items-start justify-between mb-3">
-                <div className="flex items-center space-x-3">
+              <div className="mb-3">
+                <div className="flex items-center space-x-3 mb-3">
                   <div className={`w-10 h-10 rounded-full ${isDark ? 'bg-gray-700' : 'bg-gray-200'} flex items-center justify-center`}>
                     {getRoleIcon(user.role)}
                   </div>
-                  <div>
-                    <h3 className="font-semibold text-lg">{user.email}</h3>
+                  <div className="flex-1 min-w-0">
+                    <h3 className="font-semibold text-lg truncate">{user.email}</h3>
                     <div className="flex items-center space-x-2 text-sm text-gray-500">
                       <Mail className="w-4 h-4" />
                       <span>ID: {user.id}</span>
                     </div>
                   </div>
                 </div>
-                <div className="flex items-center space-x-2">
+                <div className="flex flex-wrap gap-2">
                   <div className={`px-3 py-1 rounded-full text-xs font-medium border ${getRoleBadgeColor(user.role)}`}>
                     {getRoleName(user.role)}
                   </div>
@@ -420,15 +431,15 @@ const UserManagement: React.FC<UserManagementProps> = ({ onBack, isDark }) => {
               </div>
 
               {/* Дополнительная информация */}
-              <div className="grid grid-cols-2 gap-4 text-sm text-gray-500 mb-3">
+              <div className="space-y-2 text-sm text-gray-500 mb-3">
                 <div className="flex items-center space-x-2">
                   <Calendar className="w-4 h-4" />
-                  <span>Регистрация: {formatDate(user.created_at)}</span>
+                  <span className="truncate">Регистрация: {formatDate(user.created_at)}</span>
                 </div>
                 {user.last_login && (
                   <div className="flex items-center space-x-2">
                     <Calendar className="w-4 h-4" />
-                    <span>Последний вход: {formatDate(user.last_login)}</span>
+                    <span className="truncate">Последний вход: {formatDate(user.last_login)}</span>
                   </div>
                 )}
               </div>
@@ -442,43 +453,47 @@ const UserManagement: React.FC<UserManagementProps> = ({ onBack, isDark }) => {
               )}
 
               {/* Действия */}
-              <div className="flex space-x-2">
-                <button
-                  className="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors flex items-center space-x-1 text-sm"
-                  title="Просмотр профиля"
-                >
-                  <Eye className="w-4 h-4" />
-                  <span>Просмотр</span>
-                </button>
-                <button
-                  onClick={() => handleSendMessage(user)}
-                  disabled={!user.tgid}
-                  className={`px-3 py-1 rounded-lg transition-colors flex items-center space-x-1 text-sm ${
-                    user.tgid
-                      ? 'bg-green-600 hover:bg-green-700 text-white'
-                      : 'bg-gray-400 text-gray-200 cursor-not-allowed'
-                  }`}
-                  title={user.tgid ? 'Отправить сообщение' : 'Нет Telegram ID'}
-                >
-                  <Send className="w-4 h-4" />
-                  <span>Сообщение</span>
-                </button>
-                <button
-                  className="px-3 py-1 bg-yellow-600 hover:bg-yellow-700 text-white rounded-lg transition-colors flex items-center space-x-1 text-sm"
-                  title="Редактировать"
-                >
-                  <Edit className="w-4 h-4" />
-                  <span>Редактировать</span>
-                </button>
-                <button
-                  onClick={() => handleDeleteUser(user.id, user.email)}
-                  disabled={isLoading}
-                  className="px-3 py-1 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors flex items-center space-x-1 text-sm disabled:opacity-50"
-                  title="Удалить пользователя"
-                >
-                  <Trash2 className="w-4 h-4" />
-                  <span>Удалить</span>
-                </button>
+              <div className="space-y-2">
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    className="px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors flex items-center justify-center space-x-1 text-sm"
+                    title="Просмотр профиля"
+                  >
+                    <Eye className="w-4 h-4" />
+                    <span>Просмотр</span>
+                  </button>
+                  <button
+                    onClick={() => handleSendMessage(user)}
+                    disabled={!user.tgid}
+                    className={`px-3 py-2 rounded-lg transition-colors flex items-center justify-center space-x-1 text-sm ${
+                      user.tgid
+                        ? 'bg-green-600 hover:bg-green-700 text-white'
+                        : 'bg-gray-400 text-gray-200 cursor-not-allowed'
+                    }`}
+                    title={user.tgid ? 'Отправить сообщение' : 'Нет Telegram ID'}
+                  >
+                    <Send className="w-4 h-4" />
+                    <span>Сообщение</span>
+                  </button>
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    className="px-3 py-2 bg-yellow-600 hover:bg-yellow-700 text-white rounded-lg transition-colors flex items-center justify-center space-x-1 text-sm"
+                    title="Редактировать"
+                  >
+                    <Edit className="w-4 h-4" />
+                    <span>Редактировать</span>
+                  </button>
+                  <button
+                    onClick={() => handleDeleteUser(user.id, user.email)}
+                    disabled={isLoading}
+                    className="px-3 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors flex items-center justify-center space-x-1 text-sm disabled:opacity-50"
+                    title="Удалить пользователя"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                    <span>Удалить</span>
+                  </button>
+                </div>
               </div>
             </div>
           ))}

@@ -29,10 +29,19 @@ const UserManagement: React.FC<UserManagementProps> = ({ onBack, isDark }) => {
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [messageText, setMessageText] = useState('');
   const [isSendingMessage, setIsSendingMessage] = useState(false);
+  const [showUserDetails, setShowUserDetails] = useState(false);
+  const [selectedUserForDetails, setSelectedUserForDetails] = useState<User | null>(null);
 
   // Загружаем пользователей при открытии экрана
   useEffect(() => {
     fetchUsers();
+  }, []);
+
+  // Очищаем скролл при размонтировании компонента
+  useEffect(() => {
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
   }, []);
 
   // Фильтрация пользователей
@@ -159,6 +168,20 @@ const UserManagement: React.FC<UserManagementProps> = ({ onBack, isDark }) => {
     setShowMessageModal(true);
   };
 
+  const handleViewUser = (user: User) => {
+    setSelectedUserForDetails(user);
+    setShowUserDetails(true);
+    // Блокируем скролл основного экрана
+    document.body.style.overflow = 'hidden';
+  };
+
+  const handleCloseUserDetails = () => {
+    setShowUserDetails(false);
+    setSelectedUserForDetails(null);
+    // Разблокируем скролл основного экрана
+    document.body.style.overflow = 'unset';
+  };
+
   const sendMessage = async () => {
     if (!selectedUser || !messageText.trim()) {
       alert('Введите сообщение для отправки');
@@ -180,7 +203,7 @@ const UserManagement: React.FC<UserManagementProps> = ({ onBack, isDark }) => {
         user_email: selectedUser.email
       });
 
-      const response = await fetch(`https://n8n.bitcoinlimb.com/webhook/user-message-send?${params}`, {
+      const response = await fetch(`https://n8n.bitcoinlimb.com/webhook/send-push?${params}`, {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -455,13 +478,14 @@ const UserManagement: React.FC<UserManagementProps> = ({ onBack, isDark }) => {
               {/* Действия */}
               <div className="space-y-2">
                 <div className="grid grid-cols-2 gap-2">
-                  <button
-                    className="px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors flex items-center justify-center space-x-1 text-sm"
-                    title="Просмотр профиля"
-                  >
-                    <Eye className="w-4 h-4" />
-                    <span>Просмотр</span>
-                  </button>
+                                  <button
+                  onClick={() => handleViewUser(user)}
+                  className="px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors flex items-center justify-center space-x-1 text-sm"
+                  title="Просмотр профиля"
+                >
+                  <Eye className="w-4 h-4" />
+                  <span>Просмотр</span>
+                </button>
                   <button
                     onClick={() => handleSendMessage(user)}
                     disabled={!user.tgid}
@@ -574,6 +598,149 @@ const UserManagement: React.FC<UserManagementProps> = ({ onBack, isDark }) => {
                 }`}
               >
                 {isSendingMessage ? 'Отправка...' : 'Отправить'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Модальное окно для просмотра деталей пользователя */}
+      {showUserDetails && selectedUserForDetails && (
+        <div 
+          className="fixed inset-0 bg-black bg-opacity-50 flex items-start justify-center pt-4 px-4 z-50"
+          style={{ overflow: 'hidden' }}
+          onWheel={(e) => e.preventDefault()}
+          onTouchMove={(e) => e.preventDefault()}
+        >
+          <div className={`w-full max-w-lg rounded-xl shadow-lg ${isDark ? 'bg-gray-800' : 'bg-white'} p-6 max-h-[85vh] overflow-y-auto`}>
+            <div className="flex items-center justify-between mb-6">
+              <h3 className={`text-xl font-semibold ${isDark ? 'text-white' : 'text-gray-800'}`}>
+                Информация о пользователе
+              </h3>
+              <button
+                onClick={handleCloseUserDetails}
+                className={`p-2 rounded-lg ${isDark ? 'hover:bg-gray-700' : 'hover:bg-gray-100'} transition-colors`}
+              >
+                <XCircle className={`w-5 h-5 ${isDark ? 'text-gray-400' : 'text-gray-500'}`} />
+              </button>
+            </div>
+            
+            <div className="space-y-6">
+              {/* Основная информация */}
+              <div className={`p-4 rounded-lg ${isDark ? 'bg-gray-700' : 'bg-gray-50'}`}>
+                <h4 className={`text-lg font-semibold mb-4 ${isDark ? 'text-white' : 'text-gray-800'}`}>
+                  Основная информация
+                </h4>
+                <div className="grid grid-cols-1 gap-3">
+                  <div className="flex justify-between">
+                    <span className={`font-medium ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>ID:</span>
+                    <span className={`${isDark ? 'text-white' : 'text-gray-800'}`}>{selectedUserForDetails.id}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className={`font-medium ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>Email:</span>
+                    <span className={`${isDark ? 'text-white' : 'text-gray-800'} break-all`}>{selectedUserForDetails.email}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className={`font-medium ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>Роль:</span>
+                    <div className="flex items-center space-x-2">
+                      {getRoleIcon(selectedUserForDetails.role)}
+                      <span className={`${isDark ? 'text-white' : 'text-gray-800'}`}>{getRoleName(selectedUserForDetails.role)}</span>
+                    </div>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className={`font-medium ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>Статус:</span>
+                    <div className={`px-2 py-1 rounded text-xs font-medium ${
+                      selectedUserForDetails.is_active 
+                        ? 'bg-green-100 text-green-800' 
+                        : 'bg-red-100 text-red-800'
+                    }`}>
+                      {selectedUserForDetails.is_active ? 'Активен' : 'Неактивен'}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Telegram информация */}
+              {selectedUserForDetails.tgid && (
+                <div className={`p-4 rounded-lg ${isDark ? 'bg-gray-700' : 'bg-gray-50'}`}>
+                  <h4 className={`text-lg font-semibold mb-4 ${isDark ? 'text-white' : 'text-gray-800'}`}>
+                    Telegram
+                  </h4>
+                  <div className="grid grid-cols-1 gap-3">
+                    <div className="flex justify-between">
+                      <span className={`font-medium ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>Telegram ID:</span>
+                      <span className={`${isDark ? 'text-white' : 'text-gray-800'} font-mono`}>{selectedUserForDetails.tgid}</span>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Даты */}
+              <div className={`p-4 rounded-lg ${isDark ? 'bg-gray-700' : 'bg-gray-50'}`}>
+                <h4 className={`text-lg font-semibold mb-4 ${isDark ? 'text-white' : 'text-gray-800'}`}>
+                  Даты
+                </h4>
+                <div className="grid grid-cols-1 gap-3">
+                  <div className="flex justify-between">
+                    <span className={`font-medium ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>Регистрация:</span>
+                    <span className={`${isDark ? 'text-white' : 'text-gray-800'}`}>{formatDate(selectedUserForDetails.created_at)}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className={`font-medium ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>Последнее обновление:</span>
+                    <span className={`${isDark ? 'text-white' : 'text-gray-800'}`}>{formatDate(selectedUserForDetails.updated_at)}</span>
+                  </div>
+                  {selectedUserForDetails.last_login && (
+                    <div className="flex justify-between">
+                      <span className={`font-medium ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>Последний вход:</span>
+                      <span className={`${isDark ? 'text-white' : 'text-gray-800'}`}>{formatDate(selectedUserForDetails.last_login)}</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Дополнительная информация */}
+              <div className={`p-4 rounded-lg ${isDark ? 'bg-gray-700' : 'bg-gray-50'}`}>
+                <h4 className={`text-lg font-semibold mb-4 ${isDark ? 'text-white' : 'text-gray-800'}`}>
+                  Дополнительно
+                </h4>
+                <div className="grid grid-cols-1 gap-3">
+                  <div className="flex justify-between">
+                    <span className={`font-medium ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>Редактор:</span>
+                    <span className={`${isDark ? 'text-white' : 'text-gray-800'}`}>
+                      {selectedUserForDetails.is_editor ? 'Да' : 'Нет'}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Кнопки действий */}
+            <div className="flex space-x-3 mt-6">
+              <button
+                onClick={handleCloseUserDetails}
+                className={`flex-1 px-4 py-2 rounded-lg font-medium transition-colors ${
+                  isDark 
+                    ? 'bg-gray-600 hover:bg-gray-500 text-white' 
+                    : 'bg-gray-200 hover:bg-gray-300 text-gray-800'
+                }`}
+              >
+                Закрыть
+              </button>
+              <button
+                onClick={() => {
+                  handleCloseUserDetails();
+                  handleSendMessage(selectedUserForDetails);
+                }}
+                disabled={!selectedUserForDetails.tgid}
+                className={`flex-1 px-4 py-2 rounded-lg font-medium transition-colors ${
+                  selectedUserForDetails.tgid
+                    ? isDark 
+                      ? 'bg-green-600 hover:bg-green-700 text-white' 
+                      : 'bg-green-600 hover:bg-green-700 text-white'
+                    : 'bg-gray-400 text-gray-200 cursor-not-allowed'
+                }`}
+              >
+                Отправить сообщение
               </button>
             </div>
           </div>

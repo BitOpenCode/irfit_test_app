@@ -11,6 +11,7 @@ import NewsManagement from './NewsManagement';
 import UserMessages from './UserMessages';
 import CourseApplications from './CourseApplications';
 import UserManagement from './UserManagement';
+import ReferralScreen from './ReferralScreen';
 
 interface ProfileProps {
   onShowEmailConfirmation: (data: {
@@ -45,6 +46,8 @@ const Profile: React.FC<ProfileProps> = ({ onShowEmailConfirmation, onForceGoToL
   const [showUserMessages, setShowUserMessages] = useState(false);
   const [showCourseApplications, setShowCourseApplications] = useState(false);
   const [showUserManagement, setShowUserManagement] = useState(false);
+  const [showReferral, setShowReferral] = useState(false);
+  const [irfitCoinBalance, setIrfitCoinBalance] = useState(0);
 
   // Автозаполнение email в форме входа после подтверждения
   useEffect(() => {
@@ -60,8 +63,10 @@ const Profile: React.FC<ProfileProps> = ({ onShowEmailConfirmation, onForceGoToL
   useEffect(() => {
     const getTgId = () => {
       // Проверяем, запущено ли приложение в Telegram WebApp
-      if (window.Telegram?.WebApp?.initDataUnsafe?.user?.id) {
-        const tgid = window.Telegram.WebApp.initDataUnsafe.user.id;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      if ((window as any).Telegram?.WebApp?.initDataUnsafe?.user?.id) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const tgid = (window as any).Telegram.WebApp.initDataUnsafe.user.id;
         setRegisterData(prev => ({ ...prev, tgid: tgid.toString() }));
         return tgid;
       }
@@ -71,6 +76,56 @@ const Profile: React.FC<ProfileProps> = ({ onShowEmailConfirmation, onForceGoToL
     getTgId();
   }, []);
 
+  // Функция для получения баланса IRFIT Coin
+  const fetchIrfitCoinBalance = async () => {
+    try {
+      const token = localStorage.getItem('irfit_token');
+      console.log('JWT Token:', token);
+      
+      if (!token) {
+        console.log('No token found');
+        return;
+      }
+
+      // Декодируем токен для проверки
+      const tokenData = decodeJWT(token);
+      console.log('Decoded token:', tokenData);
+
+              const response = await fetch('https://n8n.bitcoinlimb.com/webhook/user-coins', {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        console.log('RAW ответ от webhook user-coins:', data);
+        console.log('Тип данных:', typeof data);
+        console.log('Является ли массивом:', Array.isArray(data));
+        
+        // Если это массив, берем первый элемент
+        const userData = Array.isArray(data) ? data[0] : data;
+        console.log('Данные пользователя:', userData);
+        
+        setIrfitCoinBalance(userData?.irfit_coin_balance || 0);
+      } else {
+        console.error('Ошибка получения баланса:', response.status);
+        const errorText = await response.text();
+        console.error('Error details:', errorText);
+      }
+    } catch (error) {
+      console.error('Ошибка получения баланса IRFIT Coin:', error);
+    }
+  };
+
+  // Вызываем при загрузке компонента
+  useEffect(() => {
+    if (isAuthenticated) {
+      fetchIrfitCoinBalance();
+    }
+  }, [isAuthenticated]);
 
   const achievements = [
     { id: 1, title: 'Первый онлайн урок', description: 'Завершили первое занятие', icon: '🎯', unlocked: true },
@@ -206,7 +261,7 @@ const Profile: React.FC<ProfileProps> = ({ onShowEmailConfirmation, onForceGoToL
       if (responseData.success) {
         alert('Email подтвержден! Теперь вы можете войти в систему.');
         setIsRegistering(false);
-        setRegisterData({ email: '', password: '', name: '' });
+        setRegisterData({ email: '', password: '', name: '', tgid: '' });
         // Принудительно переходим к экрану входа с email для автозаполнения
         onForceGoToLogin(registerData.email);
       } else {
@@ -595,6 +650,17 @@ const Profile: React.FC<ProfileProps> = ({ onShowEmailConfirmation, onForceGoToL
     );
   }
 
+  // Если открыт экран реферальной системы, показываем его
+  if (showReferral) {
+    return (
+      <ReferralScreen
+        onBack={() => setShowReferral(false)}
+        isDark={isDark}
+        user={user}
+      />
+    );
+  }
+
   return (
     <div className="max-w-md mx-auto px-4 py-6 space-y-6 md:max-w-4xl md:px-8 transition-colors duration-300">
       {/* Profile Header */}
@@ -626,9 +692,9 @@ const Profile: React.FC<ProfileProps> = ({ onShowEmailConfirmation, onForceGoToL
           <div className="mt-6 flex items-center justify-between bg-white/10 rounded-xl p-4">
             <div className="flex items-center space-x-2">
               <Coins className="w-6 h-6 text-yellow-300" />
-              <span className="font-semibold">FIT COIN</span>
+              <span className="font-semibold">IRFIT COIN</span>
             </div>
-            <div className="text-2xl font-bold">1,250</div>
+            <div className="text-2xl font-bold">{irfitCoinBalance.toLocaleString()}</div>
           </div>
         )}
       </div>
@@ -721,13 +787,16 @@ const Profile: React.FC<ProfileProps> = ({ onShowEmailConfirmation, onForceGoToL
             <ChevronRight className={`w-4 h-4 ${isDark ? 'text-gray-400' : 'text-gray-500'}`} />
           </button>
           
-          <button className={`w-full flex items-center justify-between p-3 rounded-lg transition-colors duration-300 ${
-            isDark ? 'hover:bg-gray-700' : 'hover:bg-gray-50'
-          }`}>
+          <button 
+            onClick={() => setShowReferral(true)}
+            className={`w-full flex items-center justify-between p-3 rounded-lg transition-colors duration-300 ${
+              isDark ? 'hover:bg-gray-700' : 'hover:bg-gray-50'
+            }`}
+          >
             <div className="flex items-center space-x-3">
               <Users className={`w-5 h-5 ${isDark ? 'text-gray-400' : 'text-gray-500'}`} />
               <span className={`${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Пригласить друзей</span>
-              </div>
+            </div>
             <ChevronRight className={`w-4 h-4 ${isDark ? 'text-gray-400' : 'text-gray-500'}`} />
           </button>
         </div>

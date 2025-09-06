@@ -21,6 +21,7 @@ interface ScheduleItem {
   created_by?: number; // ID пользователя, который создал расписание
   lesson_link?: string; // Ссылка для просмотра онлайн
   recorded_lesson_link?: string; // Ссылка для просмотра записанной лекции
+  target_group?: string; // Целевая группа для расписания
 }
 
 interface ScheduleEditorProps {
@@ -44,7 +45,8 @@ const ScheduleEditor: React.FC<ScheduleEditorProps> = ({ onBack }) => {
     end_time: '',
     date: '',
     lesson_link: '',
-    recorded_lesson_link: ''
+    recorded_lesson_link: '',
+    target_group: 'all'
   });
   const [isLoading, setIsLoading] = useState(false);
 
@@ -76,7 +78,8 @@ const ScheduleEditor: React.FC<ScheduleEditorProps> = ({ onBack }) => {
       end_time: '',
       date: '',
       lesson_link: '',
-      recorded_lesson_link: ''
+      recorded_lesson_link: '',
+      target_group: 'all'
     });
     setActiveTab('add');
   };
@@ -94,7 +97,8 @@ const ScheduleEditor: React.FC<ScheduleEditorProps> = ({ onBack }) => {
       end_time: item.end_time,
       date: item.date,
       lesson_link: item.lesson_link || '',
-      recorded_lesson_link: item.recorded_lesson_link || ''
+      recorded_lesson_link: item.recorded_lesson_link || '',
+      target_group: item.target_group || 'all'
     });
     setActiveTab('edit');
   };
@@ -183,7 +187,10 @@ const ScheduleEditor: React.FC<ScheduleEditorProps> = ({ onBack }) => {
             rating: formData.rating,
             is_active: true,
             participants: 0,
-            created_by: user?.id
+            created_by: user?.id,
+            target_group: formData.target_group,
+            lesson_link: formData.lesson_link,
+            recorded_lesson_link: formData.recorded_lesson_link
           }),
         });
 
@@ -548,6 +555,41 @@ const ScheduleEditor: React.FC<ScheduleEditorProps> = ({ onBack }) => {
             }`}
           />
         </div>
+
+        {/* Поле выбора группы - только для админов */}
+        {isAdmin && (
+          <div>
+            <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+              Целевая группа *
+            </label>
+            <select
+              value={formData.target_group}
+              onChange={(e) => setFormData(prev => ({ ...prev, target_group: e.target.value }))}
+              className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-[#94c356] focus:border-transparent ${
+                isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'
+              }`}
+            >
+              <option value="all">Все группы</option>
+              <option value="group_1">Группа 1</option>
+              <option value="group_2">Группа 2</option>
+              <option value="group_3">Группа 3</option>
+              <option value="group_4">Группа 4</option>
+              <option value="group_5">Группа 5</option>
+              <option value="group_6">Группа 6</option>
+              <option value="group_7">Группа 7</option>
+              <option value="group_8">Группа 8</option>
+              <option value="group_9">Группа 9</option>
+              <option value="group_10">Группа 10</option>
+            </select>
+          </div>
+        )}
+
+        {/* Отладочная информация */}
+        {process.env.NODE_ENV === 'development' && (
+          <div className={`text-xs p-2 rounded ${isDark ? 'bg-gray-700 text-gray-300' : 'bg-gray-100 text-gray-600'}`}>
+            Debug: isAdmin = {isAdmin.toString()}, user.role = {user?.role}
+          </div>
+        )}
 
         {/* Новые поля для ссылок - только для админов и учителей */}
         {(isAdmin || isTeacher) && (

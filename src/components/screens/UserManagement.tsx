@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ArrowLeft, Search, Filter, Users, Mail, Calendar, Crown, GraduationCap, User, MoreVertical, Edit, Trash2, Eye, Send, XCircle } from 'lucide-react';
+import { ArrowLeft, Search, Filter, Users, Mail, Calendar, User, MoreVertical, Edit, Trash2, Eye, Send, XCircle } from 'lucide-react';
 
 interface User {
   id: number;
@@ -11,6 +11,13 @@ interface User {
   last_login?: string;
   is_active: boolean;
   tgid?: number;
+  avatar_id?: number;
+  student_group?: string;
+  referral_clicks?: number;
+  referral_registrations?: number;
+  referred_by?: number;
+  irfit_coin_balance?: number;
+  admin_active?: boolean;
 }
 
 interface UserManagementProps {
@@ -22,16 +29,29 @@ const UserManagement: React.FC<UserManagementProps> = ({ onBack, isDark }) => {
   const [users, setUsers] = useState<User[]>([]);
   const [filteredUsers, setFilteredUsers] = useState<User[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [showFilters, setShowFilters] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [roleFilter, setRoleFilter] = useState<'all' | 'admin' | 'teacher' | 'student'>('all');
   const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'inactive'>('all');
+  const [coinFilter, setCoinFilter] = useState<'all' | '0' | '1-100' | '100-500' | '500+'>('all');
+  const [groupFilter, setGroupFilter] = useState<string>('all');
+  const [avatarIdFilter, setAvatarIdFilter] = useState('');
+  const [telegramIdFilter, setTelegramIdFilter] = useState('');
+  const [dateFromFilter, setDateFromFilter] = useState('');
+  const [dateToFilter, setDateToFilter] = useState('');
   const [showMessageModal, setShowMessageModal] = useState(false);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [messageText, setMessageText] = useState('');
   const [isSendingMessage, setIsSendingMessage] = useState(false);
   const [showUserDetails, setShowUserDetails] = useState(false);
   const [selectedUserForDetails, setSelectedUserForDetails] = useState<User | null>(null);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [selectedUserForEdit, setSelectedUserForEdit] = useState<User | null>(null);
+  const [coinAmount, setCoinAmount] = useState('');
+  const [newGroup, setNewGroup] = useState('');
+  const [adminActive, setAdminActive] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
 
   // Загружаем пользователей при открытии экрана
   useEffect(() => {
@@ -68,8 +88,59 @@ const UserManagement: React.FC<UserManagementProps> = ({ onBack, isDark }) => {
       );
     }
 
+    // Фильтр по количеству монет
+    if (coinFilter !== 'all') {
+      filtered = filtered.filter(user => {
+        const balance = user.irfit_coin_balance || 0;
+        switch (coinFilter) {
+          case '0':
+            return balance === 0;
+          case '1-100':
+            return balance >= 1 && balance <= 100;
+          case '100-500':
+            return balance > 100 && balance <= 500;
+          case '500+':
+            return balance > 500;
+          default:
+            return true;
+        }
+      });
+    }
+
+    // Фильтр по группе
+    if (groupFilter !== 'all') {
+      filtered = filtered.filter(user => user.student_group === groupFilter);
+    }
+
+    // Фильтр по Avatar ID
+    if (avatarIdFilter) {
+      filtered = filtered.filter(user => 
+        user.avatar_id && user.avatar_id.toString().includes(avatarIdFilter)
+      );
+    }
+
+    // Фильтр по Telegram ID
+    if (telegramIdFilter) {
+      filtered = filtered.filter(user => 
+        user.tgid && user.tgid.toString().includes(telegramIdFilter)
+      );
+    }
+
+    // Фильтр по датам регистрации
+    if (dateFromFilter) {
+      filtered = filtered.filter(user => 
+        new Date(user.created_at) >= new Date(dateFromFilter)
+      );
+    }
+
+    if (dateToFilter) {
+      filtered = filtered.filter(user => 
+        new Date(user.created_at) <= new Date(dateToFilter)
+      );
+    }
+
     setFilteredUsers(filtered);
-  }, [users, searchTerm, roleFilter, statusFilter]);
+  }, [users, searchTerm, roleFilter, statusFilter, coinFilter, groupFilter, avatarIdFilter, telegramIdFilter, dateFromFilter, dateToFilter]);
 
   const fetchUsers = async () => {
     setIsLoading(true);
@@ -126,13 +197,13 @@ const UserManagement: React.FC<UserManagementProps> = ({ onBack, isDark }) => {
   const getRoleIcon = (role: string) => {
     switch (role) {
       case 'admin':
-        return <Crown className="w-4 h-4 text-yellow-500" />;
+        return <span className="text-yellow-500 font-bold">👑</span>;
       case 'teacher':
-        return <GraduationCap className="w-4 h-4 text-blue-500" />;
+        return <span className="text-blue-500 font-bold">👨‍🏫</span>;
       case 'student':
-        return <User className="w-4 h-4 text-green-500" />;
+        return <span className="text-green-500 font-bold">👨‍🎓</span>;
       default:
-        return <User className="w-4 h-4 text-gray-500" />;
+        return <span className="text-gray-500 font-bold">👤</span>;
     }
   };
 
@@ -178,6 +249,77 @@ const UserManagement: React.FC<UserManagementProps> = ({ onBack, isDark }) => {
     setShowUserDetails(true);
     // Блокируем скролл основного экрана
     document.body.style.overflow = 'hidden';
+  };
+
+  const handleEditUser = (user: User) => {
+    setSelectedUserForEdit(user);
+    setCoinAmount('');
+    setNewGroup(user.student_group || '');
+    setAdminActive(user.admin_active === true); // true = заблокированы, false = разрешены
+    setShowEditModal(true);
+    // Блокируем скролл основного экрана
+    document.body.style.overflow = 'hidden';
+  };
+
+  const handleCloseEditModal = () => {
+    setShowEditModal(false);
+    setSelectedUserForEdit(null);
+    setCoinAmount('');
+    setNewGroup('');
+    setAdminActive(true);
+    // Восстанавливаем скролл
+    document.body.style.overflow = 'unset';
+  };
+
+  const handleSaveUser = async () => {
+    if (!selectedUserForEdit) return;
+
+    setIsSaving(true);
+    try {
+      const token = localStorage.getItem('irfit_token');
+      
+      // Формируем URL с параметрами для GET запроса
+      console.log('DEBUG adminActive state:', adminActive);
+      console.log('DEBUG (!adminActive):', !adminActive);
+      console.log('DEBUG adminActive.toString():', adminActive.toString());
+      console.log('DEBUG (!adminActive).toString():', (!adminActive).toString());
+      
+      const params = new URLSearchParams({
+        userId: selectedUserForEdit.id.toString(),
+        coinAmount: (coinAmount || 0).toString(),
+        newGroup: newGroup || '',
+        adminActive: adminActive.toString() // true = заблокирован, false = разрешен
+      });
+      
+      console.log('DEBUG Final URL params:', params.toString());
+      console.log('DEBUG Final URL:', `https://n8n.bitcoinlimb.com/webhook-test/users-edit?${params}`);
+      
+      const response = await fetch(`https://n8n.bitcoinlimb.com/webhook/users-edit?${params}`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (response.ok) {
+        const updatedUser = await response.json();
+        // Обновляем данные пользователя в списке
+        setUsers(prevUsers => 
+          prevUsers.map(user => 
+            user.id === selectedUserForEdit.id ? { ...user, ...updatedUser[0] } : user
+          )
+        );
+        handleCloseEditModal();
+        alert('Изменения сохранены!');
+      } else {
+        throw new Error('Ошибка при сохранении');
+      }
+    } catch (error) {
+      console.error('Ошибка при сохранении:', error);
+      alert('Ошибка при сохранении изменений');
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const handleCloseUserDetails = () => {
@@ -346,21 +488,38 @@ const UserManagement: React.FC<UserManagementProps> = ({ onBack, isDark }) => {
         <div className={`rounded-xl p-4 ${isDark ? 'bg-gray-800' : 'bg-white'} shadow-sm border ${isDark ? 'border-gray-700' : 'border-gray-200'}`}>
           <div className="space-y-4">
             {/* Поиск */}
-                          <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                <input
-                  type="text"
-                  placeholder="Поиск по email..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className={`w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-[#94c356] focus:border-transparent transition-all ${
-                    isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-800'
-                  }`}
-                />
-              </div>
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+              <input
+                type="text"
+                placeholder="Поиск по email..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className={`w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-[#94c356] focus:border-transparent transition-all ${
+                  isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-800'
+                }`}
+              />
+            </div>
+
+            {/* Кнопка фильтров */}
+            <button
+              onClick={() => setShowFilters(!showFilters)}
+              className={`flex items-center justify-center space-x-2 px-4 py-2 rounded-lg border transition-all ${
+                showFilters
+                  ? 'bg-[#94c356] text-white border-[#94c356]'
+                  : isDark
+                  ? 'bg-gray-700 border-gray-600 text-gray-300 hover:bg-gray-600'
+                  : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'
+              }`}
+            >
+              <Filter className="w-4 h-4" />
+              <span>{showFilters ? 'Скрыть фильтры' : 'Показать фильтры'}</span>
+            </button>
 
             {/* Фильтры */}
-            <div className="grid grid-cols-2 gap-4">
+            {showFilters && (
+              <div className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
               {/* Фильтр по роли */}
               <div>
                 <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
@@ -397,7 +556,142 @@ const UserManagement: React.FC<UserManagementProps> = ({ onBack, isDark }) => {
                   <option value="inactive">Неактивные</option>
                 </select>
               </div>
-            </div>
+
+              {/* Фильтр по количеству монет */}
+              <div>
+                <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+                  Баланс IRFIT Coins
+                </label>
+                <select
+                  value={coinFilter}
+                  onChange={(e) => setCoinFilter(e.target.value as any)}
+                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-[#94c356] focus:border-transparent transition-all ${
+                    isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-800'
+                  }`}
+                >
+                  <option value="all">Все балансы</option>
+                  <option value="0">0 монет</option>
+                  <option value="1-100">1-100 монет</option>
+                  <option value="100-500">100-500 монет</option>
+                  <option value="500+">500+ монет</option>
+                </select>
+              </div>
+
+              {/* Фильтр по группе */}
+              <div>
+                <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+                  Группа
+                </label>
+                <select
+                  value={groupFilter}
+                  onChange={(e) => setGroupFilter(e.target.value)}
+                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-[#94c356] focus:border-transparent transition-all ${
+                    isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-800'
+                  }`}
+                >
+                  <option value="all">Все группы</option>
+                  <option value="default">По умолчанию</option>
+                  <option value="all">Все группы (назначено)</option>
+                  <option value="group_1">Группа 1</option>
+                  <option value="group_2">Группа 2</option>
+                  <option value="group_3">Группа 3</option>
+                  <option value="group_4">Группа 4</option>
+                  <option value="group_5">Группа 5</option>
+                  <option value="group_6">Группа 6</option>
+                  <option value="group_7">Группа 7</option>
+                  <option value="group_8">Группа 8</option>
+                  <option value="group_9">Группа 9</option>
+                  <option value="group_10">Группа 10</option>
+                </select>
+              </div>
+
+              {/* Фильтр по Avatar ID */}
+              <div>
+                <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+                  Avatar ID
+                </label>
+                <input
+                  type="text"
+                  value={avatarIdFilter}
+                  onChange={(e) => setAvatarIdFilter(e.target.value)}
+                  placeholder="Введите Avatar ID..."
+                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-[#94c356] focus:border-transparent transition-all ${
+                    isDark ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' : 'bg-white border-gray-300 text-gray-800 placeholder-gray-500'
+                  }`}
+                />
+              </div>
+
+              {/* Фильтр по Telegram ID */}
+              <div>
+                <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+                  Telegram ID
+                </label>
+                <input
+                  type="text"
+                  value={telegramIdFilter}
+                  onChange={(e) => setTelegramIdFilter(e.target.value)}
+                  placeholder="Введите Telegram ID..."
+                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-[#94c356] focus:border-transparent transition-all ${
+                    isDark ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' : 'bg-white border-gray-300 text-gray-800 placeholder-gray-500'
+                  }`}
+                />
+              </div>
+
+              {/* Фильтр по дате регистрации (от) */}
+              <div>
+                <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+                  Регистрация с
+                </label>
+                <input
+                  type="date"
+                  value={dateFromFilter}
+                  onChange={(e) => setDateFromFilter(e.target.value)}
+                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-[#94c356] focus:border-transparent transition-all ${
+                    isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-800'
+                  }`}
+                />
+              </div>
+
+              {/* Фильтр по дате регистрации (до) */}
+              <div>
+                <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+                  Регистрация до
+                </label>
+                <input
+                  type="date"
+                  value={dateToFilter}
+                  onChange={(e) => setDateToFilter(e.target.value)}
+                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-[#94c356] focus:border-transparent transition-all ${
+                    isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-800'
+                  }`}
+                />
+              </div>
+                </div>
+
+                <div className="flex justify-center">
+                  <button
+                    onClick={() => {
+                      setSearchTerm('');
+                      setRoleFilter('all');
+                      setStatusFilter('all');
+                      setCoinFilter('all');
+                      setGroupFilter('all');
+                      setAvatarIdFilter('');
+                      setTelegramIdFilter('');
+                      setDateFromFilter('');
+                      setDateToFilter('');
+                    }}
+                    className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                      isDark 
+                        ? 'bg-gray-600 hover:bg-gray-500 text-white' 
+                        : 'bg-gray-200 hover:bg-gray-300 text-gray-800'
+                    }`}
+                  >
+                    Сбросить все фильтры
+                  </button>
+                </div>
+              </div>
+            )}
 
             {/* Статистика */}
             <div className="space-y-2 text-sm text-gray-500">
@@ -442,6 +736,24 @@ const UserManagement: React.FC<UserManagementProps> = ({ onBack, isDark }) => {
                       <Mail className="w-4 h-4" />
                       <span>ID: {user.id}</span>
                     </div>
+                    {user.first_name && (
+                      <div className="text-sm text-gray-600 mt-1">
+                        Имя: {user.first_name}
+                      </div>
+                    )}
+                    {user.student_group && user.student_group !== 'default' && (
+                      <div className="text-sm text-gray-600 mt-1">
+                        Группа: {user.student_group === 'all' ? 'Все группы' : `Группа ${user.student_group.replace('group_', '')}`}
+                      </div>
+                    )}
+                    {user.avatar_id && (
+                      <div className="text-sm text-gray-600 mt-1">
+                        Аватар ID: {user.avatar_id}
+                      </div>
+                    )}
+                    <div className="text-sm text-gray-600 mt-1">
+                      Баланс: {user.irfit_coin_balance || 0} IRFIT Coins
+                    </div>
                   </div>
                 </div>
                 <div className="flex flex-wrap gap-2">
@@ -470,6 +782,12 @@ const UserManagement: React.FC<UserManagementProps> = ({ onBack, isDark }) => {
                     <span className="truncate">Последний вход: {formatDate(user.last_login)}</span>
                   </div>
                 )}
+                {user.student_group && user.student_group !== 'default' && (
+                  <div className="flex items-center space-x-2">
+                    <User className="w-4 h-4" />
+                    <span className="truncate">Группа: {user.student_group === 'all' ? 'Все группы' : `Группа ${user.student_group.replace('group_', '')}`}</span>
+                  </div>
+                )}
               </div>
 
               {/* Telegram ID */}
@@ -477,6 +795,33 @@ const UserManagement: React.FC<UserManagementProps> = ({ onBack, isDark }) => {
                 <div className="mb-3 p-2 bg-blue-50 rounded-lg">
                   <div className="text-xs text-blue-600 mb-1">Telegram ID:</div>
                   <div className="text-sm text-blue-800 font-mono">{user.tgid}</div>
+                </div>
+              )}
+
+              {/* Реферальная информация */}
+              {(user.referral_clicks || user.referral_registrations || user.referred_by) && (
+                <div className="mb-3 p-3 bg-green-50 rounded-lg">
+                  <div className="text-xs text-green-600 mb-2 font-medium">Реферальная статистика</div>
+                  <div className="space-y-1 text-sm">
+                    {user.referral_clicks !== undefined && (
+                      <div className="flex justify-between">
+                        <span className="text-green-700">Клики по ссылке:</span>
+                        <span className="font-medium text-green-800">{user.referral_clicks}</span>
+                      </div>
+                    )}
+                    {user.referral_registrations !== undefined && (
+                      <div className="flex justify-between">
+                        <span className="text-green-700">Регистрации:</span>
+                        <span className="font-medium text-green-800">{user.referral_registrations}</span>
+                      </div>
+                    )}
+                    {user.referred_by && (
+                      <div className="flex justify-between">
+                        <span className="text-green-700">Приглашен пользователем ID:</span>
+                        <span className="font-medium text-green-800">{user.referred_by}</span>
+                      </div>
+                    )}
+                  </div>
                 </div>
               )}
 
@@ -507,6 +852,7 @@ const UserManagement: React.FC<UserManagementProps> = ({ onBack, isDark }) => {
                 </div>
                 <div className="grid grid-cols-2 gap-2">
                   <button
+                    onClick={() => handleEditUser(user)}
                     className="px-3 py-2 bg-yellow-600 hover:bg-yellow-700 text-white rounded-lg transition-colors flex items-center justify-center space-x-1 text-sm"
                     title="Редактировать"
                   >
@@ -613,9 +959,10 @@ const UserManagement: React.FC<UserManagementProps> = ({ onBack, isDark }) => {
       {showUserDetails && selectedUserForDetails && (
         <div 
           className="fixed inset-0 bg-black bg-opacity-50 flex items-start justify-center pt-4 px-4 z-50"
-          style={{ overflow: 'hidden' }}
-          onWheel={(e) => e.preventDefault()}
-          onTouchMove={(e) => e.preventDefault()}
+          style={{ 
+            overflow: 'hidden',
+            touchAction: 'none'
+          }}
         >
           <div className={`w-full max-w-lg rounded-xl shadow-lg ${isDark ? 'bg-gray-800' : 'bg-white'} p-6 max-h-[85vh] overflow-y-auto`}>
             <div className="flex items-center justify-between mb-6">
@@ -657,6 +1004,29 @@ const UserManagement: React.FC<UserManagementProps> = ({ onBack, isDark }) => {
                       {getRoleIcon(selectedUserForDetails.role)}
                       <span className={`${isDark ? 'text-white' : 'text-gray-800'}`}>{getRoleName(selectedUserForDetails.role)}</span>
                     </div>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className={`font-medium ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>Группа:</span>
+                    <span className={`${isDark ? 'text-white' : 'text-gray-800'}`}>
+                      {selectedUserForDetails.student_group 
+                        ? (selectedUserForDetails.student_group === 'all' ? 'Все группы' : 
+                           selectedUserForDetails.student_group === 'default' ? 'По умолчанию' : 
+                           `Группа ${selectedUserForDetails.student_group.replace('group_', '')}`)
+                        : 'Не назначена'
+                      }
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className={`font-medium ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>Аватар ID:</span>
+                    <span className={`${isDark ? 'text-white' : 'text-gray-800'}`}>
+                      {selectedUserForDetails.avatar_id || 'Не назначен'}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className={`font-medium ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>Баланс IRFIT Coins:</span>
+                    <span className={`${isDark ? 'text-white' : 'text-gray-800'} font-semibold`}>
+                      {selectedUserForDetails.irfit_coin_balance || 0}
+                    </span>
                   </div>
                   <div className="flex justify-between">
                     <span className={`font-medium ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>Статус:</span>
@@ -723,6 +1093,33 @@ const UserManagement: React.FC<UserManagementProps> = ({ onBack, isDark }) => {
                   </div>
                 </div>
               </div>
+
+              {/* Реферальная информация */}
+              <div className={`p-4 rounded-lg ${isDark ? 'bg-green-900/20' : 'bg-green-50'}`}>
+                <h4 className={`text-lg font-semibold mb-4 ${isDark ? 'text-green-300' : 'text-green-800'}`}>
+                  Реферальная статистика
+                </h4>
+                <div className="grid grid-cols-1 gap-3">
+                  <div className="flex justify-between">
+                    <span className={`font-medium ${isDark ? 'text-green-300' : 'text-green-600'}`}>Клики по ссылке:</span>
+                    <span className={`${isDark ? 'text-green-200' : 'text-green-800'} font-semibold`}>
+                      {selectedUserForDetails.referral_clicks !== undefined ? selectedUserForDetails.referral_clicks : 0}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className={`font-medium ${isDark ? 'text-green-300' : 'text-green-600'}`}>Регистрации:</span>
+                    <span className={`${isDark ? 'text-green-200' : 'text-green-800'} font-semibold`}>
+                      {selectedUserForDetails.referral_registrations !== undefined ? selectedUserForDetails.referral_registrations : 0}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className={`font-medium ${isDark ? 'text-green-300' : 'text-green-600'}`}>Приглашен пользователем ID:</span>
+                    <span className={`${isDark ? 'text-green-200' : 'text-green-800'} font-semibold`}>
+                      {selectedUserForDetails.referred_by || 'Никто'}
+                    </span>
+                  </div>
+                </div>
+              </div>
             </div>
 
             {/* Кнопки действий */}
@@ -752,6 +1149,181 @@ const UserManagement: React.FC<UserManagementProps> = ({ onBack, isDark }) => {
                 }`}
               >
                 Отправить сообщение
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Модальное окно для редактирования пользователя */}
+      {showEditModal && selectedUserForEdit && (
+        <div 
+          className="fixed inset-0 bg-black bg-opacity-50 flex items-start justify-center pt-4 px-4 z-50"
+          style={{ 
+            overflow: 'hidden',
+            touchAction: 'none'
+          }}
+        >
+          <div className={`w-full max-w-lg rounded-xl shadow-lg ${isDark ? 'bg-gray-800' : 'bg-white'} p-6 max-h-[85vh] overflow-y-auto`}>
+            <div className="flex items-center justify-between mb-6">
+              <h3 className={`text-xl font-semibold ${isDark ? 'text-white' : 'text-gray-800'}`}>
+                Редактировать пользователя
+              </h3>
+              <button
+                onClick={handleCloseEditModal}
+                className={`p-2 rounded-lg ${isDark ? 'hover:bg-gray-700' : 'hover:bg-gray-100'} transition-colors`}
+              >
+                <XCircle className={`w-5 h-5 ${isDark ? 'text-gray-400' : 'text-gray-500'}`} />
+              </button>
+            </div>
+            
+            <div className="space-y-6">
+              {/* Информация о пользователе */}
+              <div className={`p-4 rounded-lg ${isDark ? 'bg-gray-700' : 'bg-gray-50'}`}>
+                <h4 className={`text-lg font-semibold mb-2 ${isDark ? 'text-white' : 'text-gray-800'}`}>
+                  {selectedUserForEdit.email}
+                </h4>
+                <p className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
+                  ID: {selectedUserForEdit.id} | Роль: {getRoleName(selectedUserForEdit.role)}
+                </p>
+                <p className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
+                  Текущий баланс: {selectedUserForEdit.irfit_coin_balance || 0} IRFIT Coins
+                </p>
+              </div>
+
+              {/* Отправить IRFIT Coins */}
+              <div className={`p-4 rounded-lg ${isDark ? 'bg-blue-900/20' : 'bg-blue-50'}`}>
+                <h4 className={`text-lg font-semibold mb-4 ${isDark ? 'text-blue-300' : 'text-blue-800'}`}>
+                  💰 Отправить IRFIT Coins
+                </h4>
+                <div className="space-y-3">
+                  <div>
+                    <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-blue-300' : 'text-blue-700'}`}>
+                      Количество монет для отправки
+                    </label>
+                    <input
+                      type="number"
+                      value={coinAmount}
+                      onChange={(e) => setCoinAmount(e.target.value)}
+                      placeholder="Введите количество монет..."
+                      min="0"
+                      className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all ${
+                        isDark ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' : 'bg-white border-gray-300 text-gray-800 placeholder-gray-500'
+                      }`}
+                    />
+                  </div>
+                  {coinAmount && (
+                    <div className={`text-sm ${isDark ? 'text-blue-200' : 'text-blue-700'}`}>
+                      Новый баланс: {(selectedUserForEdit.irfit_coin_balance || 0) + parseInt(coinAmount || '0')} IRFIT Coins
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Изменить группу */}
+              <div className={`p-4 rounded-lg ${isDark ? 'bg-green-900/20' : 'bg-green-50'}`}>
+                <h4 className={`text-lg font-semibold mb-4 ${isDark ? 'text-green-300' : 'text-green-800'}`}>
+                  👥 Изменить группу
+                </h4>
+                <div>
+                  <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-green-300' : 'text-green-700'}`}>
+                    Группа пользователя
+                  </label>
+                  <select
+                    value={newGroup}
+                    onChange={(e) => setNewGroup(e.target.value)}
+                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all ${
+                      isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-800'
+                    }`}
+                  >
+                    <option value="">Не назначена</option>
+                    <option value="default">По умолчанию</option>
+                    <option value="all">Все группы</option>
+                    <option value="group_1">Группа 1</option>
+                    <option value="group_2">Группа 2</option>
+                    <option value="group_3">Группа 3</option>
+                    <option value="group_4">Группа 4</option>
+                    <option value="group_5">Группа 5</option>
+                    <option value="group_6">Группа 6</option>
+                    <option value="group_7">Группа 7</option>
+                    <option value="group_8">Группа 8</option>
+                    <option value="group_9">Группа 9</option>
+                    <option value="group_10">Группа 10</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* Telegram действия */}
+              <div className={`p-4 rounded-lg ${isDark ? 'bg-orange-900/20' : 'bg-orange-50'}`}>
+                <h4 className={`text-lg font-semibold mb-4 ${isDark ? 'text-orange-300' : 'text-orange-800'}`}>
+                  📱 Telegram действия
+                </h4>
+                <div className="space-y-3">
+                  <div className="flex items-center space-x-4">
+                    <button
+                      type="button"
+                      onClick={() => setAdminActive(false)}
+                      className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                        !adminActive
+                          ? 'bg-green-100 text-green-800 border-2 border-green-300'
+                          : 'bg-gray-100 text-gray-600 border-2 border-gray-300 hover:bg-gray-200'
+                      }`}
+                    >
+                      ✅ Разрешены
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setAdminActive(true)}
+                      className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                        adminActive
+                          ? 'bg-red-100 text-red-800 border-2 border-red-300'
+                          : 'bg-gray-100 text-gray-600 border-2 border-gray-300 hover:bg-gray-200'
+                      }`}
+                    >
+                      ❌ Заблокированы
+                    </button>
+                  </div>
+                  <p className={`text-sm font-medium ${isDark ? 'text-orange-200' : 'text-orange-700'}`}>
+                    {adminActive ? (
+                      <>
+                        <span className="text-red-600">⚠️ Пользователь заблокирован</span>
+                        <br />
+                        <span className="text-xs">Не может использовать команды в Telegram боте</span>
+                      </>
+                    ) : (
+                      <>
+                        <span className="text-green-600">✅ Пользователь активен</span>
+                        <br />
+                        <span className="text-xs">Может использовать команды в Telegram боте</span>
+                      </>
+                    )}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Кнопки действий */}
+            <div className="flex space-x-3 mt-6">
+              <button
+                onClick={handleCloseEditModal}
+                className={`flex-1 px-4 py-2 rounded-lg font-medium transition-colors ${
+                  isDark 
+                    ? 'bg-gray-600 hover:bg-gray-500 text-white' 
+                    : 'bg-gray-200 hover:bg-gray-300 text-gray-800'
+                }`}
+              >
+                Отмена
+              </button>
+              <button
+                onClick={handleSaveUser}
+                disabled={isSaving}
+                className={`flex-1 px-4 py-2 rounded-lg font-medium transition-colors ${
+                  isSaving || (!coinAmount && newGroup === selectedUserForEdit.student_group && adminActive === (selectedUserForEdit.admin_active !== false))
+                    ? 'bg-gray-400 text-gray-200 cursor-not-allowed'
+                    : 'bg-[#94c356] hover:bg-[#7ba045] text-white'
+                }`}
+              >
+                {isSaving ? 'Сохранение...' : 'Сохранить изменения'}
               </button>
             </div>
           </div>

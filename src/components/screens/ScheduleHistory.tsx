@@ -13,7 +13,7 @@ interface ScheduleItem {
   level: string;
   participants: number;
   max_participants: number;
-  rating: number;
+  target_group?: string;
   is_active: boolean;
   created_at: string;
   updated_at: string;
@@ -410,7 +410,7 @@ const ScheduleHistory: React.FC<ScheduleHistoryProps> = ({ onBack, isDark }) => 
                       {filteredSchedules.map((schedule) => (
               <div
                 key={schedule.id}
-                className={`rounded-xl p-4 ${isDark ? 'bg-gray-800' : 'bg-white'} shadow-sm border ${
+                className={`rounded-xl p-4 min-h-[300px] ${isDark ? 'bg-gray-800' : 'bg-white'} shadow-sm border ${
                   isDark ? 'border-gray-700' : 'border-gray-200'
                 }`}
               >
@@ -419,14 +419,23 @@ const ScheduleHistory: React.FC<ScheduleHistoryProps> = ({ onBack, isDark }) => 
                   <div className="flex-1">
                     <h3 className="font-bold text-lg mb-2 text-[#94c356]">{schedule.title}</h3>
                     <div className="space-y-2">
-                      <div className="flex items-center space-x-2 text-sm">
-                        <User className="w-4 h-4 text-gray-400" />
-                        <span className="font-medium">{schedule.teacher}</span>
-                      </div>
-                      <div className="flex items-center space-x-2 text-sm">
-                        <BookOpen className="w-4 h-4 text-gray-400" />
-                        <span>{schedule.class_type} - {schedule.level}</span>
-                      </div>
+                      {schedule.teacher && (
+                        <div className="flex items-center space-x-2 text-sm">
+                          <User className="w-4 h-4 text-gray-400" />
+                          <span className="font-medium">{schedule.teacher}</span>
+                        </div>
+                      )}
+                      {(schedule.class_type || schedule.level) && (
+                        <div className="flex items-center space-x-2 text-sm">
+                          <BookOpen className="w-4 h-4 text-gray-400" />
+                          <span>
+                            {schedule.class_type && schedule.level 
+                              ? `${schedule.class_type} - ${schedule.level}`
+                              : schedule.class_type || schedule.level
+                            }
+                          </span>
+                        </div>
+                      )}
                     </div>
                   </div>
                   <div className="text-right ml-4">
@@ -440,16 +449,26 @@ const ScheduleHistory: React.FC<ScheduleHistoryProps> = ({ onBack, isDark }) => 
                 </div>
 
                 {/* Основная информация */}
-                <div className="grid grid-cols-2 gap-3 mb-4">
-                  <div className={`p-3 rounded-lg ${isDark ? 'bg-gray-700/50' : 'bg-gray-50'}`}>
-                    <div className="text-xs text-gray-500 mb-1">Зал</div>
-                    <div className="font-semibold">{schedule.room}</div>
+                {(schedule.room || schedule.participants > 0 || schedule.max_participants > 0) && (
+                  <div className={`grid gap-3 mb-4 ${
+                    (schedule.room && (schedule.participants > 0 || schedule.max_participants > 0)) 
+                      ? 'grid-cols-2' 
+                      : 'grid-cols-1'
+                  }`}>
+                    {schedule.room && (
+                      <div className={`p-3 rounded-lg ${isDark ? 'bg-gray-700/50' : 'bg-gray-50'}`}>
+                        <div className="text-xs text-gray-500 mb-1">Зал</div>
+                        <div className="font-semibold">{schedule.room}</div>
+                      </div>
+                    )}
+                    {(schedule.participants > 0 || schedule.max_participants > 0) && (
+                      <div className={`p-3 rounded-lg ${isDark ? 'bg-gray-700/50' : 'bg-gray-50'}`}>
+                        <div className="text-xs text-gray-500 mb-1">Участники</div>
+                        <div className="font-semibold">{schedule.participants}/{schedule.max_participants}</div>
+                      </div>
+                    )}
                   </div>
-                  <div className={`p-3 rounded-lg ${isDark ? 'bg-gray-700/50' : 'bg-gray-50'}`}>
-                    <div className="text-xs text-gray-500 mb-1">Участники</div>
-                    <div className="font-semibold">{schedule.participants}/{schedule.max_participants}</div>
-                  </div>
-                </div>
+                )}
 
                 {/* Дополнительная информация */}
                 <div className="grid grid-cols-2 gap-3 mb-4">
@@ -458,8 +477,12 @@ const ScheduleHistory: React.FC<ScheduleHistoryProps> = ({ onBack, isDark }) => 
                     <div className="font-semibold text-sm">{formatDate(schedule.created_at)}</div>
                   </div>
                   <div className={`p-3 rounded-lg ${isDark ? 'bg-gray-700/50' : 'bg-gray-50'}`}>
-                    <div className="text-xs text-gray-500 mb-1">Рейтинг</div>
-                    <div className="font-semibold text-sm">{schedule.rating || 'Нет'}</div>
+                    <div className="text-xs text-gray-500 mb-1">Группа</div>
+                    <div className="font-semibold text-sm">
+                      {schedule.target_group === 'all' ? 'Все группы' : 
+                       schedule.target_group ? `Группа ${schedule.target_group.replace('group_', '')}` : 
+                       'Не указана'}
+                    </div>
                   </div>
                 </div>
 

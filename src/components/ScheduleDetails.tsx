@@ -142,7 +142,7 @@ const ScheduleDetails: React.FC<ScheduleDetailsProps> = ({ date, onBack, schedul
       {scheduleForDate.length > 0 ? (
         <div className="space-y-4">
           {scheduleForDate.map((class_) => (
-            <div key={class_.id} className={`rounded-xl p-6 shadow-sm transition-colors duration-300 ${
+            <div key={class_.id} className={`rounded-xl p-6 shadow-sm transition-colors duration-300 min-h-[250px] ${
               isDark ? 'bg-gray-800' : 'bg-white'
             }`}>
               {/* Time and Title */}
@@ -160,45 +160,57 @@ const ScheduleDetails: React.FC<ScheduleDetailsProps> = ({ date, onBack, schedul
               </div>
 
               {/* Tags */}
-              <div className="flex items-center space-x-2 mb-4">
-                <span className={`px-2 py-1 rounded-full text-xs font-medium ${getTypeColor(class_.class_type)}`}>
-                  {class_.class_type}
-                </span>
-                <span className={`px-2 py-1 rounded-full text-xs font-medium ${getLevelColor(class_.level)}`}>
-                  {class_.level}
-                </span>
-              </div>
+              {(class_.class_type || class_.level) && (
+                <div className="flex items-center space-x-2 mb-4">
+                  {class_.class_type && (
+                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${getTypeColor(class_.class_type)}`}>
+                      {class_.class_type}
+                    </span>
+                  )}
+                  {class_.level && (
+                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${getLevelColor(class_.level)}`}>
+                      {class_.level}
+                    </span>
+                  )}
+                </div>
+              )}
 
               {/* Details */}
               <div className="space-y-2 mb-4">
-                <div className={`flex items-center space-x-2 text-sm ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
-                  <User className="w-4 h-4" />
-                  <span>Тренер: <span className={`font-medium ${isDark ? 'text-white' : 'text-gray-800'}`}>{class_.teacher}</span></span>
-                </div>
-                <div className={`flex items-center space-x-2 text-sm ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
-                  <MapPin className="w-4 h-4" />
-                  <span>{class_.room}</span>
-                </div>
+                {class_.teacher && (
+                  <div className={`flex items-center space-x-2 text-sm ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
+                    <User className="w-4 h-4" />
+                    <span>Тренер: <span className={`font-medium ${isDark ? 'text-white' : 'text-gray-800'}`}>{class_.teacher}</span></span>
+                  </div>
+                )}
+                {class_.room && (
+                  <div className={`flex items-center space-x-2 text-sm ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
+                    <MapPin className="w-4 h-4" />
+                    <span>{class_.room}</span>
+                  </div>
+                )}
               </div>
 
               {/* Participants and Action */}
-              <div className="flex items-center justify-between">
-                <div className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
-                  Участников: <span className="font-medium">{class_.participants}/{class_.max_participants}</span>
+              {(class_.participants > 0 || class_.max_participants > 0) && (
+                <div className="flex items-center justify-between">
+                  <div className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
+                    Участников: <span className="font-medium">{class_.participants}/{class_.max_participants}</span>
+                  </div>
+                  
+                  {class_.participants < class_.max_participants ? (
+                    <button className="bg-gradient-to-r from-[#94c356] to-[#7ba045] text-white px-4 py-2 rounded-lg text-sm font-medium hover:shadow-lg transition-all hover:from-[#7ba045] hover:to-[#94c356]">
+                      Записаться
+                    </button>
+                  ) : (
+                    <span className={`px-4 py-2 rounded-lg text-sm font-medium ${
+                      isDark ? 'bg-gray-700 text-gray-400' : 'bg-gray-100 text-gray-500'
+                    }`}>
+                      Мест нет
+                    </span>
+                  )}
                 </div>
-                
-                {class_.participants < class_.max_participants ? (
-                  <button className="bg-gradient-to-r from-[#94c356] to-[#7ba045] text-white px-4 py-2 rounded-lg text-sm font-medium hover:shadow-lg transition-all hover:from-[#7ba045] hover:to-[#94c356]">
-                    Записаться
-                  </button>
-                ) : (
-                  <span className={`px-4 py-2 rounded-lg text-sm font-medium ${
-                    isDark ? 'bg-gray-700 text-gray-400' : 'bg-gray-100 text-gray-500'
-                  }`}>
-                    Мест нет
-                  </span>
-                )}
-              </div>
+              )}
 
               {/* Ссылки на онлайн просмотр и запись урока */}
               {(class_.lesson_link || class_.recorded_lesson_link) && (
@@ -244,13 +256,6 @@ const ScheduleDetails: React.FC<ScheduleDetailsProps> = ({ date, onBack, schedul
         </div>
       )}
 
-      {/* Footer note */}
-      <div className={`rounded-xl p-4 ${isDark ? 'bg-blue-900/20' : 'bg-blue-50'}`}>
-        <p className={`text-sm ${isDark ? 'text-blue-300' : 'text-blue-700'}`}>
-          💡 <strong>Совет:</strong> Приходите за 10-15 минут до начала занятия для разминки. 
-          Отмена записи возможна не позднее чем за 2 часа до начала.
-        </p>
-      </div>
     </div>
   );
 };

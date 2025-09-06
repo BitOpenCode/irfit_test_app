@@ -27,6 +27,7 @@ interface ScheduleItem {
   updated_by_name?: string; // Имя пользователя, который последний раз редактировал
   online_link?: string; // Ссылка для просмотра онлайн
   recorded_lesson_link?: string; // Ссылка для просмотра записанной лекции
+  target_group?: string; // Целевая группа для расписания
 }
 
 const ScheduleCalendar: React.FC = () => {
@@ -297,7 +298,8 @@ const ScheduleCalendar: React.FC = () => {
                   setEditingItem({
                     teacher: isTeacher ? user?.name || '' : '',
                     lesson_link: '',
-                    recorded_lesson_link: ''
+                    recorded_lesson_link: '',
+                    target_group: 'all'
                   } as ScheduleItem);
                   setIsEditingMode(true);
                   console.log('Добавить новое занятие');
@@ -528,6 +530,34 @@ const ScheduleCalendar: React.FC = () => {
                   </div>
                 </div>
               )}
+
+              {/* Поле выбора группы - только для админов */}
+              {isAdmin && (
+                <div>
+                  <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+                    Целевая группа *
+                  </label>
+                  <select
+                    value={editingItem.target_group || 'all'}
+                    onChange={(e) => setEditingItem({...editingItem, target_group: e.target.value})}
+                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-[#94c356] focus:border-transparent ${
+                      isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-900'
+                    }`}
+                  >
+                    <option value="all">Все группы</option>
+                    <option value="group_1">Группа 1</option>
+                    <option value="group_2">Группа 2</option>
+                    <option value="group_3">Группа 3</option>
+                    <option value="group_4">Группа 4</option>
+                    <option value="group_5">Группа 5</option>
+                    <option value="group_6">Группа 6</option>
+                    <option value="group_7">Группа 7</option>
+                    <option value="group_8">Группа 8</option>
+                    <option value="group_9">Группа 9</option>
+                    <option value="group_10">Группа 10</option>
+                  </select>
+                </div>
+              )}
               
               <div className="flex justify-end space-x-3 pt-6 border-t border-gray-200 dark:border-gray-700">
                 <button
@@ -733,7 +763,7 @@ const ScheduleCalendar: React.FC = () => {
           <div className="space-y-4">
             {getFilteredScheduleData().length > 0 ? (
               getFilteredScheduleData().map((item) => (
-                <div key={item.id} className={`rounded-xl p-4 shadow-sm transition-colors duration-300 ${
+                <div key={item.id} className={`rounded-xl p-4 shadow-sm transition-colors duration-300 min-h-[200px] ${
                   isDark ? 'bg-gray-800' : 'bg-white'
                 }`}>
                   <div className="flex items-start justify-between">
@@ -742,13 +772,23 @@ const ScheduleCalendar: React.FC = () => {
                         {item.title}
                       </h4>
                       <div className={`text-sm mt-2 space-y-1 ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
-                        <p><span className="font-medium">Учитель:</span> {item.teacher || 'Не указан'}</p>
-                        <p><span className="font-medium">Аудитория:</span> {item.room || 'Не указана'}</p>
-                        <p><span className="font-medium">Тип:</span> {item.class_type || 'Не указан'}</p>
-                        <p><span className="font-medium">Уровень:</span> {item.level || 'Не указан'}</p>
+                        {item.teacher && (
+                          <p><span className="font-medium">Учитель:</span> {item.teacher}</p>
+                        )}
+                        {item.room && (
+                          <p><span className="font-medium">Аудитория:</span> {item.room}</p>
+                        )}
+                        {item.class_type && (
+                          <p><span className="font-medium">Тип:</span> {item.class_type}</p>
+                        )}
+                        {item.level && (
+                          <p><span className="font-medium">Уровень:</span> {item.level}</p>
+                        )}
                         <p><span className="font-medium">Дата:</span> {formatDateWithoutTimezone(item.date)}</p>
                         <p><span className="font-medium">Время:</span> {item.start_time?.substring(0, 5)} - {item.end_time?.substring(0, 5)}</p>
-                        <p><span className="font-medium">Участники:</span> {item.participants || 0}/{item.max_participants || '∞'}</p>
+                        {(item.participants > 0 || item.max_participants > 0) && (
+                          <p><span className="font-medium">Участники:</span> {item.participants || 0}/{item.max_participants || '∞'}</p>
+                        )}
                         <p><span className="font-medium">Статус:</span> 
                           <span className={`ml-1 px-2 py-1 rounded text-xs ${
                             item.is_active 

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { User, Eye, EyeOff, Coins, Trophy, Target, Calendar, Settings, LogOut, Crown, GraduationCap, Users, ChevronRight, UserPlus, History, MessageSquare } from 'lucide-react';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useAuth } from '../../contexts/AuthContext';
@@ -26,7 +26,7 @@ interface ProfileProps {
 
 const Profile: React.FC<ProfileProps> = ({ onShowEmailConfirmation, onForceGoToLogin, onGoToPasswordReset }) => {
   const { isDark } = useTheme();
-  const { user, isAuthenticated, logout, updateUserFromToken } = useAuth();
+  const { user, isAuthenticated, logout, updateUserFromToken, fetchUserProfile } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
   const [loginData, setLoginData] = useState({ email: '', password: '' });
   const [registerData, setRegisterData] = useState({ 
@@ -77,7 +77,7 @@ const Profile: React.FC<ProfileProps> = ({ onShowEmailConfirmation, onForceGoToL
   }, []);
 
   // Функция для получения баланса IRFIT Coin
-  const fetchIrfitCoinBalance = async () => {
+  const fetchIrfitCoinBalance = useCallback(async () => {
     try {
       const token = localStorage.getItem('irfit_token');
       console.log('JWT Token:', token);
@@ -118,14 +118,17 @@ const Profile: React.FC<ProfileProps> = ({ onShowEmailConfirmation, onForceGoToL
     } catch (error) {
       console.error('Ошибка получения баланса IRFIT Coin:', error);
     }
-  };
+  }, []);
 
   // Вызываем при загрузке компонента
   useEffect(() => {
     if (isAuthenticated) {
       fetchIrfitCoinBalance();
+      fetchUserProfile(); // Загружаем полный профиль пользователя
     }
-  }, [isAuthenticated]);
+  }, [isAuthenticated, fetchIrfitCoinBalance, fetchUserProfile]);
+
+  // Профиль обновляется только при входе в систему и при ручном обновлении
 
   const achievements = [
     { id: 1, title: 'Первый онлайн урок', description: 'Завершили первое занятие', icon: '🎯', unlocked: true },
@@ -596,6 +599,9 @@ const Profile: React.FC<ProfileProps> = ({ onShowEmailConfirmation, onForceGoToL
       <ProfileSettings
         user={user}
         onBack={() => setShowProfileSettings(false)}
+        onProfileUpdate={() => {
+          fetchUserProfile(); // Обновляем профиль после изменений
+        }}
       />
     );
   }
@@ -667,14 +673,27 @@ const Profile: React.FC<ProfileProps> = ({ onShowEmailConfirmation, onForceGoToL
       <div className="bg-gradient-to-r from-[#94c356] to-[#7ba045] rounded-2xl p-6 text-white">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-4">
-            <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center">
+            <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center overflow-hidden">
+              {user?.avatar_image ? (
+                <img 
+                  src={user.avatar_image} 
+                  alt={user.avatar_name || 'Аватар'} 
+                  className="w-full h-full object-cover"
+                />
+              ) : (
               <User className="w-8 h-8" />
+              )}
             </div>
             <div>
               <h2 className="text-xl font-bold">{user?.name}</h2>
               <div className="flex items-center space-x-2">
                 {getRoleIcon(user?.role || 'student')}
                 <p className="text-white/90">{getRoleName(user?.role || 'student')}</p>
+                {user?.avatar_name && (
+                  <span className="text-xs bg-white/20 px-2 py-1 rounded-full">
+                    {user.avatar_name}
+                  </span>
+                )}
               </div>
             </div>
           </div>
@@ -796,7 +815,7 @@ const Profile: React.FC<ProfileProps> = ({ onShowEmailConfirmation, onForceGoToL
             <div className="flex items-center space-x-3">
               <Users className={`w-5 h-5 ${isDark ? 'text-gray-400' : 'text-gray-500'}`} />
               <span className={`${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Пригласить друзей</span>
-            </div>
+              </div>
             <ChevronRight className={`w-4 h-4 ${isDark ? 'text-gray-400' : 'text-gray-500'}`} />
           </button>
         </div>

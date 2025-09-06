@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 
 export type UserRole = 'student' | 'teacher' | 'admin';
 
@@ -8,6 +8,11 @@ export interface User {
   name: string;
   role: UserRole;
   avatar?: string;
+  avatar_id?: number;
+  avatar_name?: string;
+  avatar_image?: string;
+  avatar_rarity?: string;
+  irfit_coin_balance?: number;
   isActive: boolean;
   createdAt: Date;
   lastLogin?: Date;
@@ -21,6 +26,7 @@ interface AuthContextType {
   register: (email: string, password: string, name: string, role: UserRole) => Promise<boolean>;
   updateProfile: (updates: Partial<User>) => void;
   updateUserFromToken: (token: string) => void;
+  fetchUserProfile: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -74,15 +80,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (isAuth === 'true' && userData && token) {
       try {
         const parsedUserData = JSON.parse(userData);
+        console.log('Parsed user data from localStorage:', parsedUserData);
+        console.log('First name from localStorage:', parsedUserData.first_name);
+        console.log('First name type:', typeof parsedUserData.first_name);
+        console.log('First name length:', parsedUserData.first_name?.length);
+        
         const user = {
           id: parsedUserData.userId,
           email: parsedUserData.email,
-          name: parsedUserData.email.split('@')[0], // Используем email как имя
+          name: parsedUserData.first_name && parsedUserData.first_name.trim() !== '' 
+            ? parsedUserData.first_name 
+            : parsedUserData.email.split('@')[0], // Используем first_name только если он не пустой
           role: parsedUserData.role || 'student', // Берем роль напрямую из localStorage
           isActive: true,
           createdAt: new Date(),
           lastLogin: new Date(),
         };
+        console.log('Final user object:', user);
         return user;
       } catch (error) {
         console.error('Ошибка парсинга данных пользователя:', error);
@@ -218,16 +232,25 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }).join(''));
       
       const tokenData = JSON.parse(jsonPayload);
+      console.log('JWT Token Data:', tokenData);
+      console.log('First name from JWT:', tokenData.first_name);
+      console.log('First name type:', typeof tokenData.first_name);
+      console.log('First name length:', tokenData.first_name?.length);
+      console.log('First name trimmed:', tokenData.first_name?.trim());
       
       const user = {
         id: tokenData.userId,
         email: tokenData.email,
-        name: tokenData.email.split('@')[0],
+        name: tokenData.first_name && tokenData.first_name.trim() !== '' 
+          ? tokenData.first_name 
+          : tokenData.email.split('@')[0], // Используем first_name только если он не пустой
         role: tokenData.role || 'student', // Берем роль напрямую из токена
+        avatar_id: tokenData.avatar_id,
         isActive: true,
         createdAt: new Date(),
         lastLogin: new Date(),
       };
+      console.log('User object created:', user);
       setUser(user);
       setIsAuthenticated(true);
       localStorage.setItem('user', JSON.stringify(user));
@@ -235,6 +258,54 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       console.error('Ошибка обновления пользователя из токена:', error);
     }
   };
+
+  const fetchUserProfile = useCallback(async () => {
+    try {
+      const token = localStorage.getItem('irfit_token');
+      if (!token) return;
+
+      const response = await fetch('https://n8n.bitcoinlimb.com/webhook/user_profile', {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        }
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        console.log('Профиль пользователя с сервера:', data);
+        
+        if (data && data.length > 0) {
+          const userData = data[0];
+          const updatedUser = {
+            id: userData.id.toString(),
+            email: userData.email,
+            name: userData.first_name && userData.first_name.trim() !== '' 
+              ? userData.first_name 
+              : userData.email.split('@')[0],
+            role: userData.role || 'student',
+            avatar_id: userData.avatar_id,
+            avatar_name: userData.avatar_name,
+            avatar_image: userData.avatar_image,
+            avatar_rarity: userData.avatar_rarity,
+            irfit_coin_balance: userData.irfit_coin_balance || 0,
+            isActive: userData.is_active,
+            createdAt: new Date(userData.created_at),
+            lastLogin: new Date(),
+          };
+          
+          console.log('Обновленный профиль пользователя:', updatedUser);
+          setUser(updatedUser);
+          localStorage.setItem('user', JSON.stringify(updatedUser));
+        }
+      } else {
+        console.error('Ошибка загрузки профиля:', response.status);
+      }
+    } catch (error) {
+      console.error('Ошибка при загрузке профиля:', error);
+    }
+  }, []);
 
   return (
     <AuthContext.Provider value={{
@@ -245,6 +316,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       register,
       updateProfile,
       updateUserFromToken,
+      fetchUserProfile,
     }}>
       {children}
     </AuthContext.Provider>

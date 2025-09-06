@@ -2,22 +2,29 @@ import React, { useState } from 'react';
 import { useTheme } from '../../contexts/ThemeContext';
 import { ArrowLeft, Settings, User, Mail, Lock } from 'lucide-react';
 import ChangePasswordConfirmation from './ChangePasswordConfirmation';
+import AvatarSelection from './AvatarSelection';
 
 interface ProfileSettingsProps {
   user: {
     email: string;
     name?: string;
     role?: string;
+    avatar_id?: number;
+    avatar_name?: string;
+    avatar_image?: string;
+    avatar_rarity?: string;
   } | null;
   onBack: () => void;
+  onProfileUpdate?: () => void;
 }
 
-const ProfileSettings: React.FC<ProfileSettingsProps> = ({ user, onBack }) => {
+const ProfileSettings: React.FC<ProfileSettingsProps> = ({ user, onBack, onProfileUpdate }) => {
   const { isDark } = useTheme();
   const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState('');
   const [messageType] = useState<'success' | 'error'>('success');
   const [showChangePassword, setShowChangePassword] = useState(false);
+  const [showAvatarSelection, setShowAvatarSelection] = useState(false);
 
   const handleChangePassword = async () => {
     if (!user?.email) {
@@ -81,6 +88,20 @@ const ProfileSettings: React.FC<ProfileSettingsProps> = ({ user, onBack }) => {
     );
   }
 
+  // Если открыт экран выбора аватара, показываем его
+  if (showAvatarSelection) {
+    return (
+      <AvatarSelection
+        onBack={() => {
+          setShowAvatarSelection(false);
+          onProfileUpdate?.(); // Обновляем профиль после выбора аватара
+        }}
+        isDark={isDark}
+        user={user}
+      />
+    );
+  }
+
 
 
   return (
@@ -131,17 +152,30 @@ const ProfileSettings: React.FC<ProfileSettingsProps> = ({ user, onBack }) => {
           Настройки аватара
         </h3>
         <div className="flex items-center space-x-4">
-          <div className={`w-20 h-20 rounded-full flex items-center justify-center ${
+          <div className={`w-20 h-20 rounded-full flex items-center justify-center overflow-hidden ${
             isDark ? 'bg-gray-700' : 'bg-gray-200'
           }`}>
-            <User className={`w-10 h-10 ${isDark ? 'text-gray-400' : 'text-gray-500'}`} />
+            {user?.avatar_image ? (
+              <img 
+                src={user.avatar_image} 
+                alt={user.avatar_name || 'Аватар'} 
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              <User className={`w-10 h-10 ${isDark ? 'text-gray-400' : 'text-gray-500'}`} />
+            )}
           </div>
           <div className="flex-1">
-            <p className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-600'} mb-2`}>
-              Текущий аватар
+            <p className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-600'} mb-1`}>
+              {user?.avatar_name ? user.avatar_name : 'Текущий аватар'}
             </p>
+            {user?.avatar_rarity && (
+              <p className={`text-xs ${isDark ? 'text-gray-400' : 'text-gray-500'} mb-2`}>
+                Редкость: {user.avatar_rarity}
+              </p>
+            )}
             <button 
-              onClick={() => alert('Функция в разработке. Скоро вы сможете выбрать аватар или загрузить свое фото!')}
+              onClick={() => setShowAvatarSelection(true)}
               className={`px-4 py-2 rounded-lg text-sm ${
                 isDark ? 'bg-[#94c356] text-white hover:bg-[#7ba045]' : 'bg-[#94c356] text-white hover:bg-[#7ba045]'
               } transition-colors`}

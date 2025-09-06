@@ -4,7 +4,8 @@ import { ArrowLeft, Search, Filter, Users, Mail, Calendar, Crown, GraduationCap,
 interface User {
   id: number;
   email: string;
-  name: string;
+  name?: string;
+  first_name?: string;
   role: 'admin' | 'teacher' | 'student';
   created_at: string;
   last_login?: string;
@@ -92,9 +93,13 @@ const UserManagement: React.FC<UserManagementProps> = ({ onBack, isDark }) => {
       }
 
       const data = await response.json();
+      console.log('Данные пользователей с сервера:', data);
+      
       if (data.success && Array.isArray(data.users)) {
+        console.log('Первый пользователь:', data.users[0]);
         setUsers(data.users);
       } else if (Array.isArray(data)) {
+        console.log('Первый пользователь (массив):', data[0]);
         setUsers(data);
       } else {
         setUsers([]);
@@ -635,6 +640,12 @@ const UserManagement: React.FC<UserManagementProps> = ({ onBack, isDark }) => {
                   <div className="flex justify-between">
                     <span className={`font-medium ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>ID:</span>
                     <span className={`${isDark ? 'text-white' : 'text-gray-800'}`}>{selectedUserForDetails.id}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className={`font-medium ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>Имя:</span>
+                    <span className={`${isDark ? 'text-white' : 'text-gray-800'}`}>
+                      {selectedUserForDetails.name || selectedUserForDetails.first_name || 'Не указано'}
+                    </span>
                   </div>
                   <div className="flex justify-between">
                     <span className={`font-medium ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>Email:</span>

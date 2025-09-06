@@ -175,6 +175,8 @@ const ScheduleCalendar: React.FC = () => {
         
         // Логируем данные для отладки
         console.log('Данные с сервера schedules-take:', data);
+        console.log('Пользователь:', user);
+        console.log('Student group пользователя:', user?.student_group);
         
         let schedulesData = [];
         
@@ -197,8 +199,26 @@ const ScheduleCalendar: React.FC = () => {
           schedule.date
         );
         
-        console.log('Отфильтрованные расписания:', validSchedules);
-        setScheduleData(validSchedules);
+        // Дополнительная фильтрация по группам (если вебхук не фильтрует)
+        let filteredSchedules = validSchedules;
+        
+        if (user && user.role !== 'admin') {
+          // Для не-админов фильтруем по student_group
+          filteredSchedules = validSchedules.filter(schedule => {
+            // Показываем расписания для всех (target_group = 'all') или для группы пользователя
+            return schedule.target_group === 'all' || schedule.target_group === user.student_group;
+          });
+          
+          console.log('Фильтрация по группам:');
+          console.log('- Всего расписаний:', validSchedules.length);
+          console.log('- После фильтрации по группам:', filteredSchedules.length);
+          console.log('- Группа пользователя:', user.student_group);
+          console.log('- Расписания с target_group = "all":', validSchedules.filter(s => s.target_group === 'all').length);
+          console.log('- Расписания с target_group = "' + user.student_group + '":', validSchedules.filter(s => s.target_group === user.student_group).length);
+        }
+        
+        console.log('Отфильтрованные расписания:', filteredSchedules);
+        setScheduleData(filteredSchedules);
       } catch (error) {
         console.error('Ошибка загрузки расписания:', error);
         
@@ -220,7 +240,7 @@ const ScheduleCalendar: React.FC = () => {
     };
 
     fetchScheduleData();
-  }, []);
+  }, [user]);
 
   // Блокировка скролла основного экрана при открытии модального окна
   useEffect(() => {

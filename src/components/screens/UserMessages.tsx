@@ -115,7 +115,7 @@ const UserMessages: React.FC<UserMessagesProps> = ({ onBack, isDark }) => {
   const getRoleName = (role: string) => {
     switch (role) {
       case 'admin':
-        return 'Администратор';
+        return 'Админ';
       case 'teacher':
         return 'Учитель';
       case 'student':

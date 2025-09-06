@@ -210,7 +210,7 @@ const UserManagement: React.FC<UserManagementProps> = ({ onBack, isDark }) => {
   const getRoleName = (role: string) => {
     switch (role) {
       case 'admin':
-        return 'Администратор';
+        return 'Админ';
       case 'teacher':
         return 'Учитель';
       case 'student':
@@ -533,7 +533,7 @@ const UserManagement: React.FC<UserManagementProps> = ({ onBack, isDark }) => {
                   }`}
                 >
                   <option value="all">Все роли</option>
-                  <option value="admin">Администраторы</option>
+                  <option value="admin">Админы</option>
                   <option value="teacher">Учителя</option>
                   <option value="student">Ученики</option>
                 </select>

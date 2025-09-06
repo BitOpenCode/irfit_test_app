@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { ArrowLeft, Filter, Calendar, User, BookOpen, Search, X } from 'lucide-react';
+import { useAuth } from '../../contexts/AuthContext';
 
 interface ScheduleItem {
   id: string;
@@ -30,6 +31,7 @@ interface ScheduleHistoryProps {
 }
 
 const ScheduleHistory: React.FC<ScheduleHistoryProps> = ({ onBack, isDark }) => {
+  const { user } = useAuth();
   const [schedules, setSchedules] = useState<ScheduleItem[]>([]);
 
   const [filteredSchedules, setFilteredSchedules] = useState<ScheduleItem[]>(schedules);
@@ -48,7 +50,7 @@ const ScheduleHistory: React.FC<ScheduleHistoryProps> = ({ onBack, isDark }) => 
   // Загрузка данных при монтировании компонента
   useEffect(() => {
     fetchSchedules();
-  }, []);
+  }, [user]);
 
   useEffect(() => {
     applyFilters();
@@ -100,8 +102,24 @@ const ScheduleHistory: React.FC<ScheduleHistoryProps> = ({ onBack, isDark }) => 
         schedule.date
       );
       
-      setSchedules(validSchedules);
-      setFilteredSchedules(validSchedules);
+      // Дополнительная фильтрация по группам (если вебхук не фильтрует)
+      let filteredSchedules = validSchedules;
+      
+      if (user && user.role !== 'admin') {
+        // Для не-админов фильтруем по student_group
+        filteredSchedules = validSchedules.filter(schedule => {
+          // Показываем расписания для всех (target_group = 'all') или для группы пользователя
+          return schedule.target_group === 'all' || schedule.target_group === user.student_group;
+        });
+        
+        console.log('ScheduleHistory - Фильтрация по группам:');
+        console.log('- Всего расписаний:', validSchedules.length);
+        console.log('- После фильтрации по группам:', filteredSchedules.length);
+        console.log('- Группа пользователя:', user.student_group);
+      }
+      
+      setSchedules(filteredSchedules);
+      setFilteredSchedules(filteredSchedules);
     } catch (error) {
       console.error('Ошибка загрузки расписаний:', error);
       setSchedules([]);

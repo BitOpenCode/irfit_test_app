@@ -364,7 +364,56 @@ const AvatarShop: React.FC<AvatarShopProps> = ({ onBack }) => {
   }
 
   return (
-    <div className="max-w-md mx-auto px-4 py-6 md:max-w-4xl md:px-8 transition-colors duration-300">
+    <>
+      <style>
+        {`
+          @keyframes neonGlowGreen {
+            0% {
+              box-shadow: 0 0 15px rgba(148,195,86,0.3), 0 0 30px rgba(148,195,86,0.1);
+            }
+            100% {
+              box-shadow: 0 0 25px rgba(148,195,86,0.5), 0 0 50px rgba(148,195,86,0.2);
+            }
+          }
+          
+          @keyframes neonGlowRare {
+            0% {
+              box-shadow: 0 0 15px rgba(147,51,234,0.3), 0 0 30px rgba(147,51,234,0.1);
+            }
+            100% {
+              box-shadow: 0 0 25px rgba(147,51,234,0.5), 0 0 50px rgba(147,51,234,0.2);
+            }
+          }
+          
+          @keyframes neonGlowSuperRare {
+            0% {
+              box-shadow: 0 0 15px rgba(59,130,246,0.3), 0 0 30px rgba(59,130,246,0.1);
+            }
+            100% {
+              box-shadow: 0 0 25px rgba(59,130,246,0.5), 0 0 50px rgba(59,130,246,0.2);
+            }
+          }
+          
+          @keyframes neonGlowPlatinum {
+            0% {
+              box-shadow: 0 0 15px rgba(156,163,175,0.3), 0 0 30px rgba(156,163,175,0.1);
+            }
+            100% {
+              box-shadow: 0 0 25px rgba(156,163,175,0.5), 0 0 50px rgba(156,163,175,0.2);
+            }
+          }
+          
+          @keyframes neonGlowOwned {
+            0% {
+              box-shadow: 0 0 15px rgba(34,197,94,0.3), 0 0 30px rgba(34,197,94,0.1);
+            }
+            100% {
+              box-shadow: 0 0 25px rgba(34,197,94,0.5), 0 0 50px rgba(34,197,94,0.2);
+            }
+          }
+        `}
+      </style>
+      <div className="max-w-md mx-auto px-4 py-6 md:max-w-4xl md:px-8 transition-colors duration-300">
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <button
@@ -505,6 +554,19 @@ const AvatarShop: React.FC<AvatarShopProps> = ({ onBack }) => {
                   ? 'border-green-500 bg-green-900/20' 
                   : getRarityColor(avatar.rarity)
             }`}
+            style={{
+              animation: avatar.isEquipped 
+                ? 'neonGlowGreen 2s ease-in-out infinite alternate'
+                : avatar.isOwned
+                  ? 'neonGlowOwned 2s ease-in-out infinite alternate'
+                  : avatar.rarity === 'rare' 
+                    ? 'neonGlowRare 2s ease-in-out infinite alternate'
+                    : avatar.rarity === 'super rare'
+                      ? 'neonGlowSuperRare 2s ease-in-out infinite alternate'
+                      : avatar.rarity === 'platinum'
+                        ? 'neonGlowPlatinum 2s ease-in-out infinite alternate'
+                        : 'none'
+            }}
           >
             {/* Avatar Image */}
             <div className="w-16 h-16 mx-auto mb-3 rounded-lg overflow-hidden bg-white">
@@ -592,6 +654,7 @@ const AvatarShop: React.FC<AvatarShopProps> = ({ onBack }) => {
         </div>
       )}
     </div>
+    </>
   );
 };
 

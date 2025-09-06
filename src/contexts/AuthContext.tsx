@@ -13,6 +13,7 @@ export interface User {
   avatar_image?: string;
   avatar_rarity?: string;
   irfit_coin_balance?: number;
+  student_group?: string;
   isActive: boolean;
   createdAt: Date;
   lastLogin?: Date;
@@ -44,7 +45,7 @@ const mockUsers: User[] = [
   {
     id: '1',
     email: 'admin@irfit.com',
-    name: 'Администратор',
+    name: 'Админ',
     role: 'admin',
     isActive: true,
     createdAt: new Date('2024-01-01'),
@@ -246,6 +247,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           : tokenData.email.split('@')[0], // Используем first_name только если он не пустой
         role: tokenData.role || 'student', // Берем роль напрямую из токена
         avatar_id: tokenData.avatar_id,
+        student_group: tokenData.student_group, // Добавляем student_group из токена
         isActive: true,
         createdAt: new Date(),
         lastLogin: new Date(),

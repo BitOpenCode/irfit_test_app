@@ -191,9 +191,9 @@ const Profile: React.FC<ProfileProps> = ({ onShowEmailConfirmation, onForceGoToL
   ];
 
   const stats = [
-    { label: 'Уроков завершено', value: '24', icon: Target },
-    { label: 'Дней активности', value: '18', icon: Calendar },
-    { label: 'Место в лидерборде', value: leaderboardPosition > 0 ? `#${leaderboardPosition}` : 'Не в топе', icon: Trophy },
+    // { label: 'Уроков завершено', value: '24', icon: Target },
+    // { label: 'Дней активности', value: '18', icon: Calendar },
+    { label: 'Место в лидерборде', value: leaderboardPosition > 0 ? `#${leaderboardPosition}` : 'x', icon: Trophy },
   ];
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -434,7 +434,7 @@ const Profile: React.FC<ProfileProps> = ({ onShowEmailConfirmation, onForceGoToL
   const getRoleName = (role: string) => {
     switch (role) {
       case 'admin':
-        return 'Администратор';
+        return 'Админ';
       case 'teacher':
         return 'Учитель';
       case 'student':
@@ -777,12 +777,36 @@ const Profile: React.FC<ProfileProps> = ({ onShowEmailConfirmation, onForceGoToL
   }
 
   return (
-    <div className="max-w-md mx-auto px-4 py-6 space-y-6 md:max-w-4xl md:px-8 transition-colors duration-300">
+    <>
+      <style>
+        {`
+          @keyframes neonGlow {
+            0% {
+              box-shadow: 0 0 20px rgba(148,195,86,0.3), 0 0 40px rgba(148,195,86,0.1);
+            }
+            100% {
+              box-shadow: 0 0 30px rgba(148,195,86,0.5), 0 0 60px rgba(148,195,86,0.2);
+            }
+          }
+          
+          @keyframes neonGlowWhite {
+            0% {
+              box-shadow: 0 0 15px rgba(255,255,255,0.3), 0 0 30px rgba(255,255,255,0.1);
+            }
+            100% {
+              box-shadow: 0 0 25px rgba(255,255,255,0.5), 0 0 50px rgba(255,255,255,0.2);
+            }
+          }
+        `}
+      </style>
+      <div className="max-w-md mx-auto px-4 py-6 space-y-6 md:max-w-4xl md:px-8 transition-colors duration-300">
       {/* Profile Header */}
       <div className="bg-gradient-to-r from-[#94c356] to-[#7ba045] rounded-2xl p-6 text-white">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-4">
-            <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center overflow-hidden">
+            <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center overflow-hidden border-2 border-white/30 shadow-[0_0_15px_rgba(255,255,255,0.3)] hover:shadow-[0_0_25px_rgba(255,255,255,0.5)] hover:border-white/50 transition-all duration-300" style={{
+              animation: 'neonGlowWhite 2s ease-in-out infinite alternate'
+            }}>
               {user?.avatar_image ? (
                 <img 
                   src={user.avatar_image} 
@@ -829,24 +853,31 @@ const Profile: React.FC<ProfileProps> = ({ onShowEmailConfirmation, onForceGoToL
 
       {/* Stats - только для учеников */}
       {user?.role === 'student' && (
-        <div className="grid grid-cols-3 gap-4">
+        <div className="space-y-4">
+          {/* Место в лидерборде - на всю ширину */}
           {stats.map((stat, index) => {
             const Icon = stat.icon;
             return (
-              <div key={index} className={`rounded-xl p-4 text-center shadow-sm transition-colors duration-300 ${
+              <div key={index} className={`rounded-xl p-6 text-center shadow-sm transition-all duration-300 border-2 border-[#94c356] shadow-[0_0_20px_rgba(148,195,86,0.3)] hover:shadow-[0_0_30px_rgba(148,195,86,0.5)] hover:border-[#a8d85a] ${
                 isDark ? 'bg-gray-800' : 'bg-white'
-              }`}>
-                <Icon className={`w-8 h-8 mx-auto mb-2 text-[#94c356]`} />
-                <div className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-800'}`}>{stat.value}</div>
-                <div className={`text-xs ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{stat.label}</div>
+              }`} style={{
+                animation: 'neonGlow 2s ease-in-out infinite alternate'
+              }}>
+                <div className="flex items-center justify-center space-x-3">
+                  <Icon className={`w-8 h-8 text-[#94c356]`} />
+                  <div>
+                    <div className={`text-3xl font-bold ${isDark ? 'text-white' : 'text-gray-800'}`}>{stat.value}</div>
+                    <div className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{stat.label}</div>
+                  </div>
+                </div>
               </div>
             );
           })}
         </div>
       )}
 
-      {/* Achievements - только для учеников */}
-      {user?.role === 'student' && (
+      {/* Achievements - только для учеников - ВРЕМЕННО СКРЫТО */}
+      {/* {user?.role === 'student' && (
         <div className={`rounded-2xl p-6 transition-colors duration-300 ${
           isDark ? 'bg-gray-800' : 'bg-white'
         }`}>
@@ -871,7 +902,7 @@ const Profile: React.FC<ProfileProps> = ({ onShowEmailConfirmation, onForceGoToL
             ))}
           </div>
         </div>
-      )}
+      )} */}
 
       {/* Avatar Section */}
       <div className={`rounded-2xl p-6 transition-colors duration-300 ${
@@ -1230,6 +1261,7 @@ const Profile: React.FC<ProfileProps> = ({ onShowEmailConfirmation, onForceGoToL
       )}
 
     </div>
+    </>
   );
 };
 

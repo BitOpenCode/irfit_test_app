@@ -741,11 +741,6 @@ const UserManagement: React.FC<UserManagementProps> = ({ onBack, isDark }) => {
                         Имя: {user.first_name}
                       </div>
                     )}
-                    {user.student_group && user.student_group !== 'default' && (
-                      <div className="text-sm text-gray-600 mt-1">
-                        Группа: {user.student_group === 'all' ? 'Все группы' : `Группа ${user.student_group.replace('group_', '')}`}
-                      </div>
-                    )}
                     {user.avatar_id && (
                       <div className="text-sm text-gray-600 mt-1">
                         Аватар ID: {user.avatar_id}
@@ -828,21 +823,29 @@ const UserManagement: React.FC<UserManagementProps> = ({ onBack, isDark }) => {
               {/* Действия */}
               <div className="space-y-2">
                 <div className="grid grid-cols-2 gap-2">
-                                  <button
-                  onClick={() => handleViewUser(user)}
-                  className="px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors flex items-center justify-center space-x-1 text-sm"
-                  title="Просмотр профиля"
-                >
-                  <Eye className="w-4 h-4" />
-                  <span>Просмотр</span>
-                </button>
+                  <button
+                    onClick={() => handleViewUser(user)}
+                    className={`px-3 py-2 rounded-lg font-medium transition-all flex items-center justify-center space-x-1 text-sm ${
+                      isDark 
+                        ? 'bg-gray-700 text-gray-200 hover:bg-gray-600 border border-gray-600' 
+                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200 border border-gray-200'
+                    }`}
+                    title="Просмотр профиля"
+                  >
+                    <Eye className="w-4 h-4" />
+                    <span>Просмотр</span>
+                  </button>
                   <button
                     onClick={() => handleSendMessage(user)}
                     disabled={!user.tgid}
-                    className={`px-3 py-2 rounded-lg transition-colors flex items-center justify-center space-x-1 text-sm ${
-                      user.tgid
-                        ? 'bg-green-600 hover:bg-green-700 text-white'
-                        : 'bg-gray-400 text-gray-200 cursor-not-allowed'
+                    className={`px-3 py-2 rounded-lg font-medium transition-all flex items-center justify-center space-x-1 text-sm ${
+                      user.tgid 
+                        ? isDark
+                          ? 'bg-blue-600 text-white hover:bg-blue-700 border border-blue-500'
+                          : 'bg-blue-500 text-white hover:bg-blue-600 border border-blue-400'
+                        : isDark
+                          ? 'bg-gray-600 text-gray-400 cursor-not-allowed border border-gray-500'
+                          : 'bg-gray-300 text-gray-500 cursor-not-allowed border border-gray-200'
                     }`}
                     title={user.tgid ? 'Отправить сообщение' : 'Нет Telegram ID'}
                   >
@@ -853,7 +856,11 @@ const UserManagement: React.FC<UserManagementProps> = ({ onBack, isDark }) => {
                 <div className="grid grid-cols-2 gap-2">
                   <button
                     onClick={() => handleEditUser(user)}
-                    className="px-3 py-2 bg-yellow-600 hover:bg-yellow-700 text-white rounded-lg transition-colors flex items-center justify-center space-x-1 text-sm"
+                    className={`px-3 py-2 rounded-lg font-medium transition-all flex items-center justify-center space-x-1 text-sm ${
+                      isDark 
+                        ? 'bg-[#94c356] text-white hover:bg-[#7ba045] border border-[#94c356]' 
+                        : 'bg-[#94c356] text-white hover:bg-[#7ba045] border border-[#94c356]'
+                    }`}
                     title="Редактировать"
                   >
                     <Edit className="w-4 h-4" />
@@ -862,7 +869,11 @@ const UserManagement: React.FC<UserManagementProps> = ({ onBack, isDark }) => {
                   <button
                     onClick={() => handleDeleteUser(user.id, user.email)}
                     disabled={isLoading}
-                    className="px-3 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors flex items-center justify-center space-x-1 text-sm disabled:opacity-50"
+                    className={`px-3 py-2 rounded-lg font-medium transition-all flex items-center justify-center space-x-1 text-sm disabled:opacity-50 ${
+                      isDark 
+                        ? 'bg-red-600 text-white hover:bg-red-700 border border-red-500' 
+                        : 'bg-red-500 text-white hover:bg-red-600 border border-red-400'
+                    }`}
                     title="Удалить пользователя"
                   >
                     <Trash2 className="w-4 h-4" />

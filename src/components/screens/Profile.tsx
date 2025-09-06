@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { User, Eye, EyeOff, Coins, Trophy, Target, Calendar, Settings, LogOut, Crown, GraduationCap, Users, ChevronRight, UserPlus, History, MessageSquare } from 'lucide-react';
+import { User, Eye, EyeOff, Coins, Trophy, Target, Calendar, Settings, LogOut, Crown, GraduationCap, Users, ChevronRight, UserPlus, History, MessageSquare, Gamepad2, CheckSquare, BarChart3, Wallet } from 'lucide-react';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useAuth } from '../../contexts/AuthContext';
 import ProfileSettings from './ProfileSettings';
@@ -12,6 +12,12 @@ import UserMessages from './UserMessages';
 import CourseApplications from './CourseApplications';
 import UserManagement from './UserManagement';
 import ReferralScreen from './ReferralScreen';
+import MyAvatars from './MyAvatars';
+import Leaderboard from './Leaderboard';
+import Transactions from './Transactions';
+import Farming from './Farming';
+import Tasks from './Tasks';
+import AvatarShop from './AvatarShop';
 
 interface ProfileProps {
   onShowEmailConfirmation: (data: {
@@ -47,7 +53,14 @@ const Profile: React.FC<ProfileProps> = ({ onShowEmailConfirmation, onForceGoToL
   const [showCourseApplications, setShowCourseApplications] = useState(false);
   const [showUserManagement, setShowUserManagement] = useState(false);
   const [showReferral, setShowReferral] = useState(false);
+  const [showMyAvatars, setShowMyAvatars] = useState(false);
+  const [showLeaderboard, setShowLeaderboard] = useState(false);
+  const [showTransactions, setShowTransactions] = useState(false);
+  const [showFarming, setShowFarming] = useState(false);
+  const [showTasks, setShowTasks] = useState(false);
+  const [showAvatarShop, setShowAvatarShop] = useState(false);
   const [irfitCoinBalance, setIrfitCoinBalance] = useState(0);
+  const [leaderboardPosition, setLeaderboardPosition] = useState(0);
 
   // Автозаполнение email в форме входа после подтверждения
   useEffect(() => {
@@ -120,13 +133,51 @@ const Profile: React.FC<ProfileProps> = ({ onShowEmailConfirmation, onForceGoToL
     }
   }, []);
 
+  // Функция для получения места в лидерборде
+  const fetchLeaderboardPosition = useCallback(async () => {
+    try {
+      const token = localStorage.getItem('irfit_token');
+      
+      if (!token) {
+        console.log('No token found for leaderboard position');
+        return;
+      }
+
+      const response = await fetch('https://n8n.bitcoinlimb.com/webhook/leaderboard', {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        console.log('Лидерборд с сервера:', data);
+        
+        if (Array.isArray(data)) {
+          // Находим позицию текущего пользователя
+          const currentUserId = user?.id;
+          const position = data.findIndex((item: { id: string | number }) => item.id === currentUserId) + 1;
+          console.log('Позиция пользователя в лидерборде:', position);
+          setLeaderboardPosition(position || 0);
+        }
+      } else {
+        console.error('Ошибка получения лидерборда:', response.status);
+      }
+    } catch (error) {
+      console.error('Ошибка получения места в лидерборде:', error);
+    }
+  }, [user?.id]);
+
   // Вызываем при загрузке компонента
   useEffect(() => {
     if (isAuthenticated) {
       fetchIrfitCoinBalance();
       fetchUserProfile(); // Загружаем полный профиль пользователя
+      fetchLeaderboardPosition(); // Загружаем место в лидерборде
     }
-  }, [isAuthenticated, fetchIrfitCoinBalance, fetchUserProfile]);
+  }, [isAuthenticated, fetchIrfitCoinBalance, fetchUserProfile, fetchLeaderboardPosition]);
 
   // Профиль обновляется только при входе в систему и при ручном обновлении
 
@@ -142,7 +193,7 @@ const Profile: React.FC<ProfileProps> = ({ onShowEmailConfirmation, onForceGoToL
   const stats = [
     { label: 'Уроков завершено', value: '24', icon: Target },
     { label: 'Дней активности', value: '18', icon: Calendar },
-    { label: 'Место в лидерборде', value: '#15', icon: Trophy },
+    { label: 'Место в лидерборде', value: leaderboardPosition > 0 ? `#${leaderboardPosition}` : 'Не в топе', icon: Trophy },
   ];
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -667,6 +718,64 @@ const Profile: React.FC<ProfileProps> = ({ onShowEmailConfirmation, onForceGoToL
     );
   }
 
+  // Если открыт экран моих аватаров, показываем его
+  if (showMyAvatars) {
+    return (
+      <MyAvatars
+        onBack={() => setShowMyAvatars(false)}
+        onOpenShop={() => {
+          setShowMyAvatars(false);
+          setShowAvatarShop(true);
+        }}
+      />
+    );
+  }
+
+  // Если открыт экран таблицы лидеров, показываем его
+  if (showLeaderboard) {
+    return (
+      <Leaderboard
+        onBack={() => setShowLeaderboard(false)}
+      />
+    );
+  }
+
+  // Если открыт экран транзакций, показываем его
+  if (showTransactions) {
+    return (
+      <Transactions
+        onBack={() => setShowTransactions(false)}
+      />
+    );
+  }
+
+  // Если открыт экран фарминга, показываем его
+  if (showFarming) {
+    return (
+      <Farming
+        onBack={() => setShowFarming(false)}
+      />
+    );
+  }
+
+  // Если открыт экран заданий, показываем его
+  if (showTasks) {
+    return (
+      <Tasks
+        onBack={() => setShowTasks(false)}
+      />
+    );
+  }
+
+  // Если открыт экран магазина аватаров, показываем его
+  if (showAvatarShop) {
+    return (
+      <AvatarShop
+        onBack={() => setShowAvatarShop(false)}
+      />
+    );
+  }
+
   return (
     <div className="max-w-md mx-auto px-4 py-6 space-y-6 md:max-w-4xl md:px-8 transition-colors duration-300">
       {/* Profile Header */}
@@ -764,6 +873,126 @@ const Profile: React.FC<ProfileProps> = ({ onShowEmailConfirmation, onForceGoToL
         </div>
       )}
 
+      {/* Avatar Section */}
+      <div className={`rounded-2xl p-6 transition-colors duration-300 ${
+        isDark ? 'bg-gray-800' : 'bg-white'
+      }`}>
+        <h3 className={`text-lg font-bold mb-4 ${isDark ? 'text-white' : 'text-gray-800'}`}>Аватар</h3>
+        <div className="space-y-3">
+          <button 
+            onClick={() => setShowMyAvatars(true)}
+            className={`w-full flex items-center justify-between p-3 rounded-lg transition-colors duration-300 ${
+              isDark ? 'hover:bg-gray-700' : 'hover:bg-gray-50'
+            }`}
+          >
+            <div className="flex items-center space-x-3">
+              <User className={`w-5 h-5 ${isDark ? 'text-blue-400' : 'text-blue-500'}`} />
+              <span className={isDark ? 'text-gray-300' : 'text-gray-700'}>Мои аватары</span>
+            </div>
+            <ChevronRight className={`w-4 h-4 ${isDark ? 'text-gray-400' : 'text-gray-500'}`} />
+          </button>
+          
+          <button 
+            onClick={() => setShowLeaderboard(true)}
+            className={`w-full flex items-center justify-between p-3 rounded-lg transition-colors duration-300 ${
+              isDark ? 'hover:bg-gray-700' : 'hover:bg-gray-50'
+            }`}
+          >
+            <div className="flex items-center space-x-3">
+              <BarChart3 className={`w-5 h-5 ${isDark ? 'text-yellow-400' : 'text-yellow-500'}`} />
+              <span className={isDark ? 'text-gray-300' : 'text-gray-700'}>Таблица лидеров</span>
+            </div>
+            <ChevronRight className={`w-4 h-4 ${isDark ? 'text-gray-400' : 'text-gray-500'}`} />
+          </button>
+          
+          <button 
+            onClick={() => setShowReferral(true)}
+            className={`w-full flex items-center justify-between p-3 rounded-lg transition-colors duration-300 ${
+              isDark ? 'hover:bg-gray-700' : 'hover:bg-gray-50'
+            }`}
+          >
+            <div className="flex items-center space-x-3">
+              <Users className={`w-5 h-5 ${isDark ? 'text-pink-400' : 'text-pink-500'}`} />
+              <span className={isDark ? 'text-gray-300' : 'text-gray-700'}>Пригласить друзей</span>
+            </div>
+            <ChevronRight className={`w-4 h-4 ${isDark ? 'text-gray-400' : 'text-gray-500'}`} />
+          </button>
+          
+          <button 
+            onClick={() => setShowAvatarShop(true)}
+            className={`w-full flex items-center justify-between p-3 rounded-lg transition-colors duration-300 ${
+              isDark ? 'hover:bg-gray-700' : 'hover:bg-gray-50'
+            }`}
+          >
+            <div className="flex items-center space-x-3">
+              <Coins className={`w-5 h-5 ${isDark ? 'text-yellow-400' : 'text-yellow-500'}`} />
+              <span className={isDark ? 'text-gray-300' : 'text-gray-700'}>Магазин</span>
+            </div>
+            <ChevronRight className={`w-4 h-4 ${isDark ? 'text-gray-400' : 'text-gray-500'}`} />
+          </button>
+          
+          <button 
+            onClick={() => setShowFarming(true)}
+            className={`w-full flex items-center justify-between p-3 rounded-lg transition-colors duration-300 ${
+              isDark ? 'hover:bg-gray-700' : 'hover:bg-gray-50'
+            }`}
+          >
+            <div className="flex items-center space-x-3">
+              <Gamepad2 className={`w-5 h-5 ${isDark ? 'text-green-400' : 'text-green-500'}`} />
+              <span className={isDark ? 'text-gray-300' : 'text-gray-700'}>Фарминг</span>
+            </div>
+            <ChevronRight className={`w-4 h-4 ${isDark ? 'text-gray-400' : 'text-gray-500'}`} />
+          </button>
+          
+          <button 
+            onClick={() => setShowTasks(true)}
+            className={`w-full flex items-center justify-between p-3 rounded-lg transition-colors duration-300 ${
+              isDark ? 'hover:bg-gray-700' : 'hover:bg-gray-50'
+            }`}
+          >
+            <div className="flex items-center space-x-3">
+              <CheckSquare className={`w-5 h-5 ${isDark ? 'text-purple-400' : 'text-purple-500'}`} />
+              <span className={isDark ? 'text-gray-300' : 'text-gray-700'}>Задания</span>
+            </div>
+            <ChevronRight className={`w-4 h-4 ${isDark ? 'text-gray-400' : 'text-gray-500'}`} />
+          </button>
+          
+          <button 
+            onClick={() => setShowTransactions(true)}
+            className={`w-full flex items-center justify-between p-3 rounded-lg transition-colors duration-300 ${
+              isDark ? 'hover:bg-gray-700' : 'hover:bg-gray-50'
+            }`}
+          >
+            <div className="flex items-center space-x-3">
+              <Wallet className={`w-5 h-5 ${isDark ? 'text-orange-400' : 'text-orange-500'}`} />
+              <span className={isDark ? 'text-gray-300' : 'text-gray-700'}>Транзакции</span>
+            </div>
+            <ChevronRight className={`w-4 h-4 ${isDark ? 'text-gray-400' : 'text-gray-500'}`} />
+          </button>
+        </div>
+      </div>
+
+      {/* Settings */}
+      <div className={`rounded-2xl p-6 transition-colors duration-300 ${
+                isDark ? 'bg-gray-800' : 'bg-white'
+              }`}>
+        <h3 className={`text-lg font-bold mb-4 ${isDark ? 'text-white' : 'text-gray-800'}`}>Настройки</h3>
+        <div className="space-y-3">
+          <button 
+            onClick={() => setShowProfileSettings(true)}
+            className={`w-full flex items-center justify-between p-3 rounded-lg transition-colors duration-300 ${
+              isDark ? 'hover:bg-gray-700' : 'hover:bg-gray-50'
+            }`}
+          >
+            <div className="flex items-center space-x-3">
+              <Settings className={`w-5 h-5 ${isDark ? 'text-gray-400' : 'text-gray-500'}`} />
+              <span className={isDark ? 'text-gray-300' : 'text-gray-700'}>Настройки профиля</span>
+              </div>
+            <ChevronRight className={`w-4 h-4 ${isDark ? 'text-gray-400' : 'text-gray-500'}`} />
+          </button>
+        </div>
+      </div>
+
       {/* Запрос роли учителя - только для учеников */}
       {user?.role === 'student' && (
         <div className={`rounded-2xl p-6 transition-colors duration-300 ${
@@ -786,40 +1015,6 @@ const Profile: React.FC<ProfileProps> = ({ onShowEmailConfirmation, onForceGoToL
               </div>
               </div>
       )}
-
-      {/* Settings */}
-      <div className={`rounded-2xl p-6 transition-colors duration-300 ${
-                isDark ? 'bg-gray-800' : 'bg-white'
-              }`}>
-        <h3 className={`text-lg font-bold mb-4 ${isDark ? 'text-white' : 'text-gray-800'}`}>Настройки</h3>
-        <div className="space-y-3">
-          <button 
-            onClick={() => setShowProfileSettings(true)}
-            className={`w-full flex items-center justify-between p-3 rounded-lg transition-colors duration-300 ${
-              isDark ? 'hover:bg-gray-700' : 'hover:bg-gray-50'
-            }`}
-          >
-            <div className="flex items-center space-x-3">
-              <Settings className={`w-5 h-5 ${isDark ? 'text-gray-400' : 'text-gray-500'}`} />
-              <span className={isDark ? 'text-gray-300' : 'text-gray-700'}>Настройки профиля</span>
-              </div>
-            <ChevronRight className={`w-4 h-4 ${isDark ? 'text-gray-400' : 'text-gray-500'}`} />
-          </button>
-          
-          <button 
-            onClick={() => setShowReferral(true)}
-            className={`w-full flex items-center justify-between p-3 rounded-lg transition-colors duration-300 ${
-              isDark ? 'hover:bg-gray-700' : 'hover:bg-gray-50'
-            }`}
-          >
-            <div className="flex items-center space-x-3">
-              <Users className={`w-5 h-5 ${isDark ? 'text-gray-400' : 'text-gray-500'}`} />
-              <span className={`${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Пригласить друзей</span>
-              </div>
-            <ChevronRight className={`w-4 h-4 ${isDark ? 'text-gray-400' : 'text-gray-500'}`} />
-          </button>
-        </div>
-      </div>
 
       {/* Административные функции - только для администраторов */}
       {user?.role === 'admin' && (

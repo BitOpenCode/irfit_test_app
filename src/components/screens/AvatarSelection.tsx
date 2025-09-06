@@ -78,7 +78,7 @@ const AvatarSelection: React.FC<AvatarSelectionProps> = ({ onBack, isDark, user 
         return;
       }
 
-      const response = await fetch('https://n8n.bitcoinlimb.com/webhook/irfit_avatars', {
+      const response = await fetch('https://n8n.bitcoinlimb.com/webhook/my_avatars', {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -320,22 +320,6 @@ const AvatarSelection: React.FC<AvatarSelectionProps> = ({ onBack, isDark, user 
         <div className="w-10"></div>
       </div>
 
-      {/* User Balance */}
-      <div className={`rounded-2xl p-4 mb-4 shadow-lg transition-colors duration-300 ${
-        isDark ? 'bg-gray-800' : 'bg-white'
-      }`}>
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-2">
-            <Coins className="w-6 h-6 text-yellow-300" />
-            <span className={`font-semibold ${isDark ? 'text-white' : 'text-gray-800'}`}>
-              Ваш баланс
-            </span>
-          </div>
-          <div className="text-2xl font-bold text-yellow-300">
-            {userBalance.toLocaleString()}
-          </div>
-        </div>
-      </div>
 
       {/* Search and Filters */}
       <div className={`rounded-2xl p-4 mb-4 shadow-lg transition-colors duration-300 ${
@@ -498,36 +482,22 @@ const AvatarSelection: React.FC<AvatarSelectionProps> = ({ onBack, isDark, user 
               </div>
             </div>
 
-            {/* Action Button */}
+            {/* Action Button - только Выбрать для купленных аватаров */}
             {(() => {
               const isSelected = selectedAvatar?.id === avatar.id;
               console.log(`🔍 Аватар ${avatar.name} (id: ${avatar.id}) выбран:`, isSelected, 'selectedAvatar:', selectedAvatar);
               return isSelected;
             })() && (
               <div className="mt-2">
-                {avatar.price_irfit_coins === 0 ? (
-                  <button
-                    className="w-full bg-[#94c356] text-white py-1.5 px-2 rounded-lg text-xs font-semibold hover:bg-[#7ba045] transition-colors"
-                    onClick={() => {
-                      console.log('🖱️ Нажата кнопка "Выбрать" для аватара:', avatar);
-                      handleWearAvatar(avatar);
-                    }}
-                  >
-                    Выбрать
-                  </button>
-                ) : (
-                  <button
-                    className={`w-full py-1.5 px-2 rounded-lg text-xs font-semibold transition-colors ${
-                      userBalance >= avatar.price_irfit_coins
-                        ? 'bg-[#94c356] text-white hover:bg-[#7ba045]'
-                        : 'bg-gray-400 text-gray-200 cursor-not-allowed'
-                    }`}
-                    onClick={() => handlePurchase(avatar)}
-                    disabled={userBalance < avatar.price_irfit_coins}
-                  >
-                    {userBalance >= avatar.price_irfit_coins ? 'Купить' : 'Недостаточно'}
-                  </button>
-                )}
+                <button
+                  className="w-full bg-[#94c356] text-white py-1.5 px-2 rounded-lg text-xs font-semibold hover:bg-[#7ba045] transition-colors"
+                  onClick={() => {
+                    console.log('🖱️ Нажата кнопка "Выбрать" для аватара:', avatar);
+                    handleWearAvatar(avatar);
+                  }}
+                >
+                  Выбрать
+                </button>
               </div>
             )}
           </div>

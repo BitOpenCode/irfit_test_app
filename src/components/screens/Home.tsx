@@ -135,9 +135,14 @@ const Home: React.FC = () => {
         }`}>
           Присоединяйтесь к сообществу профессионалов восстановительного фитнеса
         </p>
-        <button className={`px-8 py-3 rounded-full font-semibold text-white bg-gradient-to-r from-[#94c356] to-[#7ba045] hover:from-[#7ba045] hover:to-[#94c356] transition-all duration-300 transform hover:scale-105 shadow-lg`}>
+        <a 
+          href="https://irfit.ru/" 
+          target="_blank" 
+          rel="noopener noreferrer"
+          className={`inline-block px-8 py-3 rounded-full font-semibold text-white bg-gradient-to-r from-[#94c356] to-[#7ba045] hover:from-[#7ba045] hover:to-[#94c356] transition-all duration-300 transform hover:scale-105 shadow-lg`}
+        >
           Начать обучение
-        </button>
+        </a>
       </div>
     </div>
   );

@@ -61,6 +61,7 @@ const Profile: React.FC<ProfileProps> = ({ onShowEmailConfirmation, onForceGoToL
   const [showAvatarShop, setShowAvatarShop] = useState(false);
   const [irfitCoinBalance, setIrfitCoinBalance] = useState(0);
   const [leaderboardPosition, setLeaderboardPosition] = useState(0);
+  const [isProfileDataLoading, setIsProfileDataLoading] = useState(true);
 
   // Автозаполнение email в форме входа после подтверждения
   useEffect(() => {
@@ -170,14 +171,30 @@ const Profile: React.FC<ProfileProps> = ({ onShowEmailConfirmation, onForceGoToL
     }
   }, [user?.id]);
 
-  // Вызываем при загрузке компонента
-  useEffect(() => {
-    if (isAuthenticated) {
-      fetchIrfitCoinBalance();
-      fetchUserProfile(); // Загружаем полный профиль пользователя
-      fetchLeaderboardPosition(); // Загружаем место в лидерборде
+  // Функция для загрузки всех данных профиля
+  const loadProfileData = useCallback(async () => {
+    if (!isAuthenticated) return;
+    
+    setIsProfileDataLoading(true);
+    
+    try {
+      // Загружаем все данные параллельно
+      await Promise.all([
+        fetchIrfitCoinBalance(),
+        fetchUserProfile(),
+        fetchLeaderboardPosition()
+      ]);
+    } catch (error) {
+      console.error('Ошибка загрузки данных профиля:', error);
+    } finally {
+      setIsProfileDataLoading(false);
     }
   }, [isAuthenticated, fetchIrfitCoinBalance, fetchUserProfile, fetchLeaderboardPosition]);
+
+  // Вызываем при загрузке компонента
+  useEffect(() => {
+    loadProfileData();
+  }, [loadProfileData]);
 
   // Профиль обновляется только при входе в систему и при ручном обновлении
 
@@ -193,7 +210,11 @@ const Profile: React.FC<ProfileProps> = ({ onShowEmailConfirmation, onForceGoToL
   const stats = [
     // { label: 'Уроков завершено', value: '24', icon: Target },
     // { label: 'Дней активности', value: '18', icon: Calendar },
-    { label: 'Место в лидерборде', value: leaderboardPosition > 0 ? `#${leaderboardPosition}` : 'x', icon: Trophy },
+    { 
+      label: 'Место в лидерборде', 
+      value: isProfileDataLoading ? 'loading' : (leaderboardPosition > 0 ? `#${leaderboardPosition}` : 'x'), 
+      icon: Trophy 
+    },
   ];
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -846,7 +867,13 @@ const Profile: React.FC<ProfileProps> = ({ onShowEmailConfirmation, onForceGoToL
               <Coins className="w-6 h-6 text-yellow-300" />
               <span className="font-semibold">IRFIT COIN</span>
             </div>
-            <div className="text-2xl font-bold">{irfitCoinBalance.toLocaleString()}</div>
+            <div className="text-2xl font-bold">
+              {isProfileDataLoading ? (
+                <div className="animate-pulse bg-gray-300 rounded w-20 h-8"></div>
+              ) : (
+                irfitCoinBalance.toLocaleString()
+              )}
+            </div>
           </div>
         )}
       </div>
@@ -866,7 +893,13 @@ const Profile: React.FC<ProfileProps> = ({ onShowEmailConfirmation, onForceGoToL
                 <div className="flex items-center justify-center space-x-3">
                   <Icon className={`w-8 h-8 text-[#94c356]`} />
                   <div>
-                    <div className={`text-3xl font-bold ${isDark ? 'text-white' : 'text-gray-800'}`}>{stat.value}</div>
+                    <div className={`text-3xl font-bold ${isDark ? 'text-white' : 'text-gray-800'}`}>
+                      {stat.value === 'loading' ? (
+                        <div className="animate-pulse bg-gray-300 rounded w-16 h-10 mx-auto"></div>
+                      ) : (
+                        stat.value
+                      )}
+                    </div>
                     <div className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>{stat.label}</div>
                   </div>
                 </div>

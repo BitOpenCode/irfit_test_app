@@ -224,6 +224,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const updateUserFromToken = (token: string) => {
+    console.log('updateUserFromToken called with token:', token);
     try {
       // Декодируем JWT токен
       const base64Url = token.split('.')[1];
@@ -238,6 +239,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       console.log('First name type:', typeof tokenData.first_name);
       console.log('First name length:', tokenData.first_name?.length);
       console.log('First name trimmed:', tokenData.first_name?.trim());
+      console.log('Student group from JWT:', tokenData.student_group);
+      console.log('Student group type:', typeof tokenData.student_group);
       
       const user = {
         id: tokenData.userId,
@@ -280,6 +283,28 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         
         if (data && data.length > 0) {
           const userData = data[0];
+          
+          // Сохраняем текущий student_group если он есть
+          const currentUser = user;
+          const currentStudentGroup = currentUser?.student_group;
+          
+          // Также пытаемся получить student_group из localStorage
+          const storedUser = localStorage.getItem('user');
+          let storedStudentGroup = null;
+          if (storedUser) {
+            try {
+              const parsedUser = JSON.parse(storedUser);
+              storedStudentGroup = parsedUser.student_group;
+            } catch (e) {
+              console.error('Ошибка парсинга пользователя из localStorage:', e);
+            }
+          }
+          
+          console.log('Текущий пользователь при обновлении профиля:', currentUser);
+          console.log('Текущий student_group:', currentStudentGroup);
+          console.log('student_group из localStorage:', storedStudentGroup);
+          console.log('student_group из вебхука:', userData.student_group);
+          
           const updatedUser = {
             id: userData.id.toString(),
             email: userData.email,
@@ -292,6 +317,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             avatar_image: userData.avatar_image,
             avatar_rarity: userData.avatar_rarity,
             irfit_coin_balance: userData.irfit_coin_balance || 0,
+            student_group: userData.student_group || currentStudentGroup || storedStudentGroup, // Используем из вебхука, текущего пользователя или localStorage
             isActive: userData.is_active,
             createdAt: new Date(userData.created_at),
             lastLogin: new Date(),

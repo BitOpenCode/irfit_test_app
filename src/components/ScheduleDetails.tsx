@@ -191,26 +191,7 @@ const ScheduleDetails: React.FC<ScheduleDetailsProps> = ({ date, onBack, schedul
                 )}
               </div>
 
-              {/* Participants and Action */}
-              {(class_.participants > 0 || class_.max_participants > 0) && (
-                <div className="flex items-center justify-between">
-                  <div className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
-                    Участников: <span className="font-medium">{class_.participants}/{class_.max_participants}</span>
-                  </div>
-                  
-                  {class_.participants < class_.max_participants ? (
-                    <button className="bg-gradient-to-r from-[#94c356] to-[#7ba045] text-white px-4 py-2 rounded-lg text-sm font-medium hover:shadow-lg transition-all hover:from-[#7ba045] hover:to-[#94c356]">
-                      Записаться
-                    </button>
-                  ) : (
-                    <span className={`px-4 py-2 rounded-lg text-sm font-medium ${
-                      isDark ? 'bg-gray-700 text-gray-400' : 'bg-gray-100 text-gray-500'
-                    }`}>
-                      Мест нет
-                    </span>
-                  )}
-                </div>
-              )}
+              {/* Участники убраны - не отслеживаем количество */}
 
               {/* Ссылки на онлайн просмотр и запись урока */}
               {(class_.lesson_link || class_.recorded_lesson_link) && (
